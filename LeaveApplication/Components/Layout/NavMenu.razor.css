@@ -18,7 +18,7 @@
 .top-row {
     background-color: #f7f7f7;
     min-height: 3.5rem;
-    background-color: rgba(0,0,0,0.4);
+    
 }
 
 .navbar-brand {
@@ -124,9 +124,20 @@
 @media (max-width: 640px) {
 
     .navbar-toggler {
-        display: block; /* Show toggle button on phone */
+        display: block; 
+        background-color: #031020;
+    }
+       
+    .navbar-toggler:active {
+            background-color: #0a1f3d;
     }
 
+       
+     .navbar-toggler:focus {
+background-color: #0a1f3d;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(145, 193, 242, 0.5);
+        }
     .nav-scrollable {
         display: none; /* Hide sidebar by default */
         background-color: #ffffff;
@@ -141,8 +152,11 @@
 }
 
 .nav-logo {
-    
     object-fit: contain;
     display: block;
-    width: 37px;
+    width: 72px;
+    margin-left: 24px;
+    padding-top: -13px;
+    /* height: 7px; */
+    padding-bottom: -40px;
 }
