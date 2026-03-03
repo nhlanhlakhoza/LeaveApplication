@@ -115,6 +115,34 @@
 }
 
 .icon-all {
-    color: #031020;
+    color: #91c1f2;
     transition: color 0.2s ease;
+}
+
+
+/* ===== MOBILE (640px and below) ===== */
+@media (max-width: 640px) {
+
+    .navbar-toggler {
+        display: block; /* Show toggle button on phone */
+    }
+
+    .nav-scrollable {
+        display: none; /* Hide sidebar by default */
+        background-color: #ffffff;
+        height: auto;
+        overflow-y: auto;
+    }
+
+    /* Optional: make sidebar full width on phone */
+    .sidebar {
+        width: 100%;
+    }
+}
+
+.nav-logo {
+    
+    object-fit: contain;
+    display: block;
+    width: 37px;
 }
