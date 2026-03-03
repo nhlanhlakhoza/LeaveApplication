@@ -1,30 +1,79 @@
-﻿<div class="top-row ps-3 navbar navbar-dark">
+﻿
+@inject IJSRuntime JS
+@using Radzen
+
+
+
+<div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
-        <a class="navbar-brand" href="">LeaveApplication</a>
+        <a class="navbar-brand" href="">
+            <img src="Images/mpact.png" alt="Logo" class="nav-logo" />
+        </a>
     </div>
 </div>
 
 <input type="checkbox" title="Navigation menu" class="navbar-toggler" />
 
 <div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
-    <nav class="nav flex-column">
+    <nav class="flex-column">
+       
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="dashboard" Match="NavLinkMatch.All">
+                    <span class="bi bi-house-door fs-4  mb-4  icon-all" aria-hidden="true"></span> Dashboard
+                </NavLink>
+            </div>
+        
+        
         <div class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
+            <NavLink class="nav-link" href="tasks">
+                <span class="bi-list-check fs-4 me-2 icon-all" aria-hidden="true"></span>Tasks
             </NavLink>
+        </div>
+        
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="users">
+                    <span class="bi bi-people-fill fs-4 icon-all " style="position: relative; top: -13px;" aria-hidden="true"></span> Users
+                </NavLink>
+            </div>
+        
+        
+        
+        <div class="nav-item px-3">
+            <a class="nav-link"
+               href="/"
+               @onclick="Logout">
+                <span class="bi bi-box-arrow-right fs-4 icon-all"
+                      style="position: relative; top: -13px;"
+                      aria-hidden="true"></span>
+                Logout
+            </a>
         </div>
 
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="counter">
-                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Counter
-            </NavLink>
-        </div>
-
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="weather">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Weather
-            </NavLink>
-        </div>
     </nav>
 </div>
 
+@code {
+
+    public string UserName { get; set; } = "";
+    public string UserEmail { get; set; } = "";
+    public string UserRole { get; set; } = "";
+    public string lastName { get; set; } = "";
+    public string Initials { get; set; } = "";
+    public string UserId { get; set; } = "";
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await LoadUserFromToken();
+        }
+    }
+    private async Task LoadUserFromToken()
+    {
+       
+    }
+    private void Logout()
+    {
+        // Clear auth/session/token here
+    }
+}
