@@ -13,8 +13,7 @@ main {
 }
 
 .top-row {
-    background-color: white;
-    border-bottom: 1px solid #d6d5d5;
+    background-color: #0d253d;
     justify-content: flex-end;
     height: 3.5rem;
     display: flex;
@@ -59,9 +58,11 @@ main {
     }
 
     .top-row {
+        background-color: #0d253d;
         position: sticky;
         top: 0;
         z-index: 1;
+        border-block: black;
     }
 
     .top-row.auth ::deep a:first-child {
@@ -73,6 +74,7 @@ main {
     .top-row, article {
         padding-left: 2rem !important;
         padding-right: 1.5rem !important;
+     
     }
 }
 

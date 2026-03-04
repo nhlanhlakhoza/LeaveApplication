@@ -16,9 +16,8 @@
 }
 
 .top-row {
-    background-color: #f7f7f7;
+    background-color: #0d253d;
     min-height: 3.5rem;
-    
 }
 
 .navbar-brand {
@@ -61,7 +60,7 @@
     }
 
     .nav-item ::deep .nav-link {
-        color: #2c3e50 border: none;
+        color: white;
         background: none;
         border: none;
         border-radius: 4px;
@@ -98,7 +97,7 @@
     .nav-scrollable {
         /* Never collapse the sidebar for wide screens */
         display: block;
-        background-color: #f7f7f7;
+        background-color: #0d253d;
         /* Allow sidebar to scroll for tall menus */
         height: calc(100vh - 3.5rem);
         overflow-y: auto;
