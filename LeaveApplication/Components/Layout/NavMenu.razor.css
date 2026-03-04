@@ -139,7 +139,7 @@ background-color: #0a1f3d;
         }
     .nav-scrollable {
         display: none; /* Hide sidebar by default */
-        background-color: #ffffff;
+        background-color: #0d253d;
         height: auto;
         overflow-y: auto;
     }
