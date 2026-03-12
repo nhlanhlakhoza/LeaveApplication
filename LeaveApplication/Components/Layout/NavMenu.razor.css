@@ -16,7 +16,7 @@
 }
 
 .top-row {
-    background-color: #0d253d;
+    background-color: #122a41;
     min-height: 3.5rem;
 }
 
@@ -97,7 +97,7 @@
     .nav-scrollable {
         /* Never collapse the sidebar for wide screens */
         display: block;
-        background-color: #0d253d;
+        background-color: #122a41;
         /* Allow sidebar to scroll for tall menus */
         height: calc(100vh - 3.5rem);
         overflow-y: auto;
@@ -139,7 +139,7 @@ background-color: #0a1f3d;
         }
     .nav-scrollable {
         display: none; /* Hide sidebar by default */
-        background-color: #0d253d;
+        background-color: #122a41;
         height: auto;
         overflow-y: auto;
     }
