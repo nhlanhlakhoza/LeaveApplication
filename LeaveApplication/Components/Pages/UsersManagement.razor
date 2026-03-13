@@ -1,0 +1,434 @@
+﻿@page "/users"
+@using Microsoft.AspNetCore.Components.Forms
+@inject IJSRuntime JSRuntime
+@inject HttpClient Http
+@using Radzen
+
+@rendermode InteractiveServer
+<PageTitle>Users Management - Inspection Pro</PageTitle>
+
+<div class="users-container">
+    <!-- Page Header -->
+    <div class="page-header">
+        <h1><i class="fas fa-users"></i> Users Management</h1>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="quick-actions">
+        <button class="action-btn add" @onclick="ShowAddUserModal">
+            <i class="fas fa-user-plus"></i>
+            Add New User
+        </button>
+        
+        <button class="action-btn refresh" @onclick="RefreshData">
+            <i class="fas fa-sync-alt"></i>
+            Refresh Data
+        </button>
+    </div>
+
+    <!-- Search and Filters -->
+    <div class="search-section">
+        <div class="search-bar">
+            <i class="fas fa-search"></i>
+            <input type="text" @bind="SearchTerm" @bind:event="oninput" placeholder="Search users by name, email, or role..." />
+        </div>
+        <div class="filter-group">
+            <select class="filter-select" @bind="RoleFilter">
+                <option value="">All Roles</option>
+                <option value="admin">Administrator</option>
+                <option value="inspector">Inspector</option>
+                <option value="manager">Manager</option>
+            </select>
+            <select class="filter-select" @bind="StatusFilter">
+                <option value="">All Status</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+            </select>
+        </div>
+    </div>
+   
+
+    <!-- Users Table -->
+    <div class="users-table-container">
+        <div class="table-header">
+            <h2><i class="fas fa-list"></i> All Users</h2>
+            <div class="table-actions">
+                <span>@FilteredUsers.Count users</span>
+            </div>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>User</th>
+                    <th>Role</th>
+                    <th>Department</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var user in PagedUsers)
+                {
+                    <tr>
+                        <td>
+                            <div class="user-info">
+                                <div class="user-avatar">@GetUserInitials(user.FullName, user.LastName)</div>
+                                <div class="user-details">
+                                    <h4 style="font-size: calc(0.6rem + .3vw);"> @($"{user.FullName} {user.LastName}".ToUpper())</h4>
+                                    <div class="user-email">@user.Email</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="role-badge role-@user.Role">
+                                @GetRoleDisplayName(user.Role)
+                            </span>
+                        </td>
+                        <td>@user.Department</td>
+                        
+                        <td>
+                            <span class="status-badge status-@user.Status">
+                                @user.Status.ToUpper()
+                            </span>
+                        </td>
+                        <td>
+                            <div class="action-cell">
+                                <button class="icon-btn edit-btn" @onclick="() => EditUser(user)">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="icon-btn delete-btn" @onclick="() => DeleteUser(user)">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+ 
+      
+    </div>
+    <div class="pager-container">
+    <RadzenPager Count="@count"
+                 PageSize="@pageSize"
+                 PageNumbersCount="6"
+                 PageChanged="@PageChanged" />
+</div>
+
+
+</div>
+
+@if (ShowModal)
+{
+    <div class="modal show">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>@(EditingUser ? "Edit User" : "Add New User")</h3>
+                <button class="close-btn" @onclick="CloseModal">&times;</button>
+            </div>
+
+            <EditForm Model="@CurrentUser" OnValidSubmit="@SaveUser">
+                <DataAnnotationsValidator />
+
+                <div class="form-group">
+                    <label>Full Name *</label>
+                    <InputText @bind-Value="@CurrentUser.FullName" class="form-control" />
+                </div>
+
+                <div class="form-group">
+                    <label>Last Name *</label>
+                    <InputText @bind-Value="@CurrentUser.LastName" class="form-control" />
+                </div>
+
+                <div class="form-group">
+                    <label>Email *</label>
+                    <InputText @bind-Value="@CurrentUser.Email" class="form-control" />
+                </div>
+
+                <div class="form-group">
+                    <label>Role *</label>
+                    <InputSelect @bind-Value="@CurrentUser.Role" class="form-control">
+                        <option value="">Select Role</option>
+                        <option value="admin">Administrator</option>
+                        <option value="inspector">Inspector</option>
+                        <option value="manager">Manager</option>
+                    </InputSelect>
+                </div>
+
+                <div class="form-group">
+                    <label>Department *</label>
+                    <InputText @bind-Value="@CurrentUser.Department" class="form-control" />
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" @onclick="CloseModal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save User</button>
+                </div>
+            </EditForm>
+            <br />
+            @if (!string.IsNullOrEmpty(SuccessMessage))
+{
+    <div class="alert alert-success text-center">@SuccessMessage</div>
+}
+
+@if (!string.IsNullOrEmpty(ErrorMessage))
+{
+    <div class="alert alert-danger text-center">@ErrorMessage</div>
+}
+
+        </div>
+    </div>
+}
+
+
+<!-- Loading Indicator -->
+@if (IsLoading)
+{
+    <div class="loading-overlay">
+        <div class="loading-spinner">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p>@LoadingMessage</p>
+        </div>
+    </div>
+}
+
+@code {
+    private List<User> Users = new();
+    private List<User> FilteredUsers = new();
+    private User CurrentUser = new();
+    private bool ShowModal = false;
+    private bool EditingUser = false;
+    private bool IsLoading = false;
+    private string LoadingMessage = "";
+    private string roleFilter = "";
+    private string statusFilter = "";
+    private string SuccessMessage = "";
+    private string ErrorMessage = "";
+    private string searchTerm = "";
+    private int pageSize = 4;
+    private int pageIndex = 0;
+    private int count => FilteredUsers.Count;
+
+    private IEnumerable<User> PagedUsers =>
+        FilteredUsers.Skip(pageIndex * pageSize).Take(pageSize);
+
+
+    void PageChanged(Radzen.PagerEventArgs args)
+    {
+        pageIndex = args.PageIndex;
+    }
+
+
+    private string SearchTerm
+    {
+        get => searchTerm;
+        set
+        {
+            searchTerm = value;
+            FilterUsers();
+        }
+    }
+    private string StatusFilter
+    {
+        get => statusFilter;
+        set
+        {
+            statusFilter = value;
+            FilterUsers();
+        }
+    }
+    private string RoleFilter
+    {
+        get => roleFilter;
+        set
+        {
+            roleFilter = value;
+            FilterUsers();
+        }
+    }
+
+    protected override void OnInitialized()
+    {
+        LoadSampleData();
+        FilterUsers();
+    }
+
+    private void LoadSampleData()
+    {
+        IsLoading = true;
+        LoadingMessage = "Loading Users...";
+        StateHasChanged();
+        try
+        {
+            Users = Http.GetFromJsonAsync<List<User>>(
+                "https://localhost:7272/api/users/all"
+            ).GetAwaiter().GetResult();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Failed to load users: " + ex.Message);
+        }
+        IsLoading = false;
+        StateHasChanged();
+    }
+
+    private void FilterUsers()
+    {
+        var filtered = Users.AsEnumerable();
+
+        if (!string.IsNullOrEmpty(SearchTerm))
+        {
+            filtered = filtered.Where(u =>
+                ($"{u.FullName} {u.LastName}").Contains(SearchTerm, StringComparison.OrdinalIgnoreCase) ||
+                u.Email.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase) ||
+                u.Department.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase)
+            );
+        }
+
+        if (!string.IsNullOrEmpty(RoleFilter))
+        {
+            filtered = filtered.Where(u => u.Role == RoleFilter);
+        }
+
+        if (!string.IsNullOrEmpty(StatusFilter))
+        {
+            filtered = filtered.Where(u => u.Status == StatusFilter);
+        }
+
+        FilteredUsers = filtered.ToList();
+        StateHasChanged();
+    }
+    
+    private string GetUserInitials(string firstName, string lastName)
+    {
+        return string.Concat(
+            string.IsNullOrEmpty(firstName) ? "" : firstName[0].ToString().ToUpper(),
+            string.IsNullOrEmpty(lastName) ? "" : lastName[0].ToString().ToUpper()
+        );
+    }
+
+    private string GetRoleDisplayName(string role) => role switch
+    {
+        "admin" => "Administrator",
+        "inspector" => "Inspector",
+        "manager" => "Manager",
+        _ => role
+    };
+
+    private string FormatDate(DateTime? date) => date.HasValue ? date.Value.ToString("MMM dd, yyyy") : "-";
+
+    private void ShowAddUserModal()
+    {
+        CurrentUser = new User { Status="active" };
+        EditingUser = false;
+        ShowModal = true;
+    }
+
+    private void EditUser(User user)
+    {
+        if (user != null)
+        {
+            CurrentUser = new User
+            {
+                FullName = user.FullName,
+                LastName = user.LastName,
+                Email = user.Email,
+                Role = user.Role,
+                Department = user.Department,
+                //LastLogin = user.LastLogin,
+                Status = user.Status
+            };
+            EditingUser = true;
+            ShowModal = true;
+        }
+    }
+
+    private void CloseModal()
+    {
+        ShowModal = false;
+        SuccessMessage = "";
+        ErrorMessage = "";
+        CurrentUser = new User();
+    }
+
+    private async Task SaveUser()
+    {
+        try
+        {
+            IsLoading = true;
+            LoadingMessage = "Saving user...";
+            StateHasChanged();
+
+            var response = await Http.PostAsJsonAsync("https://localhost:7272/api/users/create", CurrentUser);
+
+            if (response.IsSuccessStatusCode)
+            {
+
+                IsLoading = false;
+
+                SuccessMessage = "User created successfully!";
+                ErrorMessage = "";
+                StateHasChanged();
+
+
+                await Task.Delay(3000);
+
+                CloseModal();
+
+
+            }
+            else
+            {
+                // API returned an error TEXT not JSON
+                ErrorMessage = await response.Content.ReadAsStringAsync();
+                SuccessMessage = "";
+            }
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = "Unexpected error: " + ex.Message;
+            SuccessMessage = "";
+        }
+        finally
+        {
+            IsLoading = false;
+            StateHasChanged();
+        }
+    }
+
+
+
+
+    private async Task DeleteUser(User user)
+    {
+        if (await JSRuntime.InvokeAsync<bool>("confirm", $"Are you sure you want to delete {user.FullName}?"))
+        {
+            Users.Remove(user);
+            FilterUsers();
+            await JSRuntime.InvokeVoidAsync("alert", "User deleted successfully!");
+        }
+    }
+
+
+    private async Task RefreshData()
+    {
+        IsLoading = true;
+        LoadingMessage = "Refreshing data...";
+        StateHasChanged();
+        await Task.Delay(1000);
+        LoadSampleData();
+        IsLoading = false;
+        
+    }
+
+    public class User
+    {
+        public string FullName { get; set; } = string.Empty;
+        public string LastName { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public string Role { get; set; } = string.Empty;
+        public string Department { get; set; } = string.Empty;
+        public string Status { get; set; } = "active";
+        public string password { get; set; } = "";
+    }
+}
