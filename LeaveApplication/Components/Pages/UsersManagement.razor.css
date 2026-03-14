@@ -48,7 +48,7 @@
     background: linear-gradient(135deg, #081f3f, #6f93b7);
     color: white;
     border: none;
-    padding: 12px 20px;
+    padding: 8px 8px;
     border-radius: 8px;
     cursor: pointer;
     display: flex;
@@ -65,7 +65,7 @@
 /* Search Section */
 .search-section {
     background: white;
-    padding: 20px;
+    padding: 8px;
     border-radius: 10px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
     margin-bottom: 25px;
@@ -119,7 +119,7 @@
 .table-header {
     background: linear-gradient(135deg, #081f3f, #6f93b7);
     color: white;
-    padding: 11px 25px;
+    padding: 8px 25px;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -162,7 +162,7 @@ thead {
 }
 
 th {
-    padding: 15px 20px;
+    padding: 8px 20px;
     text-align: left;
     font-weight: 600;
     color: #2c3e50;
@@ -170,7 +170,7 @@ th {
 }
 
 td {
-    padding: 15px 20px;
+    padding: 2px 20px;
     border-bottom: 1px solid #ecf0f1;
 }
 
@@ -189,7 +189,7 @@ tr:hover {
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    background: #122a41;
+    background: #6f93b7;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -202,6 +202,10 @@ tr:hover {
     color: #7f8c8d;
 }
 
+.user-fullName {
+    font-size: 0.85rem;
+    font-weight:bold;
+}
 /* Badges */
 .role-badge,
 .status-badge {
@@ -212,23 +216,23 @@ tr:hover {
 }
 
 .role-admin {
-    background: #e3f2fd;
-    color: #1976d2;
+    background: #4e71b0;
+    color: #fff;
 }
 
 .role-inspector {
-    background: #e8f5e9;
-    color: #388e3c;
+    background: #364a5e;
+    color: #fff;
 }
 
 .role-manager {
-    background: #fff8e1;
-    color: #f57f17;
+    background: #6f93b7;
+    color: #fff;
 }
 
 .status-active {
-    background: #e8f5e9;
-    color: #27ae60;
+    background: #5583b1;
+    color: #fff;
 }
 
 .status-inactive {
@@ -256,7 +260,7 @@ tr:hover {
     }
 
 .edit-btn {
-    color: #122a41;
+    color: #6f93b7;
 }
 
 .delete-btn {

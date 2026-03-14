@@ -74,7 +74,7 @@
                             <div class="user-info">
                                 <div class="user-avatar">@GetUserInitials(user.FullName, user.LastName)</div>
                                 <div class="user-details">
-                                    <h4 style="font-size: calc(0.6rem + .3vw);"> @($"{user.FullName} {user.LastName}".ToUpper())</h4>
+                                    <div class="user-fullName"> @($"{user.FullName} {user.LastName}".ToUpper())</div>
                                     <div class="user-email">@user.Email</div>
                                 </div>
                             </div>

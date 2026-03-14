@@ -123,8 +123,8 @@
 @media (max-width: 640px) {
 
     .navbar-toggler {
-        display: block; 
-        background-color: #031020;
+        display: block;
+        background-color: #2a415d;
     }
        
     .navbar-toggler:active {
@@ -153,9 +153,9 @@ background-color: #0a1f3d;
 .nav-logo {
     object-fit: contain;
     display: block;
-    width: 55px;
+    width: 69px;
     margin-left: 28px;
-    margin-top: 15px;
+    margin-top: 17px;
     /* height: 7px; */
     padding-bottom: -40px;
 }
