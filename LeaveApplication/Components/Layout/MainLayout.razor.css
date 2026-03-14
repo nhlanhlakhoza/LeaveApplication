@@ -13,7 +13,7 @@ main {
 }
 
 .top-row {
-    background-color: #122a41;
+    background: linear-gradient(135deg, #6f93b7, #081f3f);
     justify-content: flex-end;
     height: 3.5rem;
     display: flex;

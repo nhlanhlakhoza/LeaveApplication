@@ -16,8 +16,10 @@
 }
 
 .top-row {
-    background-color: #122a41;
+    
     min-height: 3.5rem;
+    background: linear-gradient(135deg, #fff, #6f93b7);
+    margin-top: -30px;
 }
 
 .navbar-brand {
@@ -72,12 +74,12 @@
     }
 
     .nav-item ::deep a.active {
-        background-color: #031020;
+        background-color: #6f93b7;
         color: white;
     }
 
     .nav-item ::deep .nav-link:hover {
-        background-color: #031020;
+        background-color: #6f93b7;
         color: white;
     }
 
@@ -95,10 +97,8 @@
     }
 
     .nav-scrollable {
-        /* Never collapse the sidebar for wide screens */
         display: block;
-        background-color: #122a41;
-        /* Allow sidebar to scroll for tall menus */
+        background: linear-gradient(135deg, #081f3f,#3f6284);
         height: calc(100vh - 3.5rem);
         overflow-y: auto;
     }
@@ -114,7 +114,7 @@
 }
 
 .icon-all {
-    color: #91c1f2;
+   
     transition: color 0.2s ease;
 }
 
@@ -153,9 +153,9 @@ background-color: #0a1f3d;
 .nav-logo {
     object-fit: contain;
     display: block;
-    width: 72px;
-    margin-left: 24px;
-    padding-top: -13px;
+    width: 55px;
+    margin-left: 28px;
+    margin-top: 15px;
     /* height: 7px; */
     padding-bottom: -40px;
 }
