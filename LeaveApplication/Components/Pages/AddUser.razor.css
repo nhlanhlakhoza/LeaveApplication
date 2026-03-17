@@ -95,3 +95,6 @@
     transition: background 0.3s;
     font-weight: 600;
 }
+ .save-btn:hover {
+        background: #11293f;
+   }
