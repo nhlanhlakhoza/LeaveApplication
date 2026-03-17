@@ -13,18 +13,7 @@
         <h1><i class="fas fa-users"></i> Users Management</h1>
     </div>
 
-    <!-- Quick Actions -->
-    <div class="quick-actions">
-        <button class="action-btn add" @onclick="ShowAddUserModal">
-            <i class="fas fa-user-plus"></i>
-            Add New User
-        </button>
-        
-        <button class="action-btn refresh" @onclick="RefreshData">
-            <i class="fas fa-sync-alt"></i>
-            Refresh Data
-        </button>
-    </div>
+  
 
     <!-- Search and Filters -->
     <div class="search-section">
@@ -49,6 +38,7 @@
    
 
     <!-- Users Table -->
+    <div class="table-and-quick-actions">
     <div class="users-table-container">
         <div class="table-header">
             <h2><i class="fas fa-list"></i> All Users</h2>
@@ -63,7 +53,6 @@
                     <th>Role</th>
                     <th>Department</th>
                     <th>Status</th>
-                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -91,23 +80,40 @@
                                 @user.Status.ToUpper()
                             </span>
                         </td>
-                        <td>
-                            <div class="action-cell">
-                                <button class="icon-btn edit-btn" @onclick="() => EditUser(user)">
-                                    <i class="fas fa-edit"></i>
-                                </button>
-                                <button class="icon-btn delete-btn" @onclick="() => DeleteUser(user)">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </div>
-                        </td>
+                       
                     </tr>
                 }
             </tbody>
         </table>
- 
-      
+        </div>
+
+
+     
+
+    <!-- Quick Actions Panel (right side) -->
+  <div class="users-table-quickAction"
+    
+        <div class="table-header">
+        <h2><i class="fas fa-user"></i>Quick Actions</h2>
+        </div>
+        <div class="quick-actions-panel">
+         <button class="action-btn refresh" @onclick="RefreshData">
+            <i class="fas fa-sync-alt"></i> Refresh
+        </button>
+        <button class="action-btn add" @onclick="ShowAddUserModal">
+            <i class="fas fa-user-plus"></i> Add New
+        </button>
+        
+        <button class="action-btn edit">
+            <i class="fas fa-edit"></i> Edit User
+        </button>
+        <button class="action-btn delete" >
+            <i class="fas fa-trash"></i> Delete User
+        </button>
     </div>
+      </div>
+  </div>
+
     <div class="pager-container">
     <RadzenPager Count="@count"
                  PageSize="@pageSize"
