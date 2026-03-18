@@ -3,6 +3,7 @@
 @inject IJSRuntime JSRuntime
 @inject HttpClient Http
 @using Radzen
+@inject NavigationManager Navigation
 
 @rendermode InteractiveServer
 <PageTitle>Users Management - Inspection Pro</PageTitle>
@@ -100,7 +101,7 @@
             <button class="action-btn refresh" @onclick="RefreshData">
             <i class="fas fa-sync-alt"></i> Refresh
         </button>
-        <button class="action-btn add" @onclick="ShowAddUserModal">
+        <button class="action-btn add" @onclick="OnAddNavigation">
             <i class="fas fa-user-plus"></i> Add New
         </button>
         
@@ -304,7 +305,7 @@
         FilteredUsers = filtered.ToList();
         StateHasChanged();
     }
-    
+
     private string GetUserInitials(string firstName, string lastName)
     {
         return string.Concat(
@@ -402,7 +403,10 @@
         }
     }
 
-
+    private async Task OnAddNavigation()
+    {
+        Navigation.NavigateTo("/AddUsers");
+    }
 
 
     private async Task DeleteUser(User user)

@@ -3,7 +3,7 @@
 @inject IJSRuntime JSRuntime
 @inject HttpClient Http
 @using Radzen
-
+@inject NavigationManager Navigation
 @rendermode InteractiveServer
 <PageTitle>Add User </PageTitle>
 
@@ -92,7 +92,7 @@
             <button type="submit" class="btn save-btn px-5 py-2 me-3">
                                 Save
                             </button>
-                            <a asp-page="/Users/Index" class="btn btn-outline-secondary px-5 py-2">
+            <a asp-page="/users" class="btn btn-outline-secondary px-5 py-2" @onclick="OnNavigation">
                                 Cancel
                             </a>
                         </div>
@@ -101,5 +101,10 @@
        
 
 @code {
+
+    private async Task OnNavigation()
+    {
+        Navigation.NavigateTo("/users");
+    }
 
 }
