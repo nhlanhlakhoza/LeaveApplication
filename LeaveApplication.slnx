@@ -1,3 +1,4 @@
 <Solution>
+  <Project Path="../LeaveApplicationBackend/LeaveApplicationBackend.csproj" />
   <Project Path="LeaveApplication/LeaveApplication.csproj" />
 </Solution>
