@@ -8,5 +8,6 @@ namespace LeaveApplicationBackend.Services
     {
         Task<bool> UserExists(string email);
         Task CreateUser(DTO.RegisterRequest request);
+        Task<LoginResponse> Login(DTO.LoginRequest request);
     }
 }

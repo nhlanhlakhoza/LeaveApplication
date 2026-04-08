@@ -1,4 +1,4 @@
-﻿using backendMpact.Data;
+﻿using LeaveApplicationBackend.Data;
 using LeaveApplicationBackend.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -17,10 +17,13 @@ namespace LeaveApplicationBackend.Repositories
             _context.Users.Add(user);
             _context.SaveChanges();
         }
-        public async Task<bool> UserExists(string email)
+              public async Task<bool> UserExists(string email)
         {
-
-            return true;
+            return await _context.Users.AnyAsync(u => u.Email == email);
+        }
+        public async Task<User?> GetByEmailAsync(string email)
+        {
+            return await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
         }
     }
 }

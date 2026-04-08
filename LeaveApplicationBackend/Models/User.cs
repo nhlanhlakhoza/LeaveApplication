@@ -19,7 +19,6 @@ namespace LeaveApplicationBackend.Models
         [Required]
         public string Status { get; set; }
 
-        [Required]
-        public DateTime? LastLogin { get; set; }
+     
     }
 }

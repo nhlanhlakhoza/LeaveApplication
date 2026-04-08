@@ -1,7 +1,7 @@
 ﻿using LeaveApplicationBackend.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace backendMpact.Data
+namespace LeaveApplicationBackend.Data
 {
     public class AppDbContext : DbContext
     {

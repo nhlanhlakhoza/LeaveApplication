@@ -59,6 +59,20 @@ namespace LeaveApplicationBackend.Controllers
 
         }
 
+        //Login
+        [HttpPost("login")]
+        public async Task<IActionResult> Login([FromBody] LoginRequest request)
+        {
+            try
+            {
+                var loginResponse = await _service.Login(request);
+                return Ok(loginResponse); // returns token + message
+            }
+            catch (System.Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
         private string GenerateRandomPassword(int length = 10)
         {
             const string validChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890!@#$%^&*";

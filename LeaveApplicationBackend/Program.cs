@@ -1,7 +1,9 @@
-using backendMpact.Data;
+using LeaveApplicationBackend.Data;
+using LeaveApplicationBackend.Services;
 using LeaveApplicationBackend;
 using LeaveApplicationBackend.Repositories;
 using Microsoft.EntityFrameworkCore;
+using backendMpact.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<AppDbContext>(options =>
@@ -10,6 +12,8 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddControllers();
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 

@@ -25,9 +25,28 @@ namespace LeaveApplicationBackend.Services
 
         }
 
-        public Task CreateUser(RegisterRequest request)
+        public async Task CreateUser(DTO.RegisterRequest request)
         {
-            throw new NotImplementedException();
+            //  Hash the password here
+            using var sha = SHA256.Create();
+            var bytes = Encoding.UTF8.GetBytes(request.Password);
+            var hash = sha.ComputeHash(bytes);
+            var hashedPassword = Convert.ToBase64String(hash);
+            // Convert DTO → User model
+            var user = new User
+            {
+
+                Email = request.Email,
+                FullName = request.FullName,
+                LastName = request.LastName,
+                Password = hashedPassword,
+                Role = request.Role,
+                Status = "Active",
+
+            };
+
+            //  Save to database
+            _repo.Add(user);
         }
 
         public Task<bool> UserExists(string email)
@@ -35,7 +54,7 @@ namespace LeaveApplicationBackend.Services
             return _repo.UserExists(email);
         }
 
-     
+       
 
         // JWT GENERATOR
         private string GenerateJwtToken(User user)
@@ -65,27 +84,26 @@ namespace LeaveApplicationBackend.Services
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
-        public async Task CreateUser(DTO.RegisterRequest request)
+        public async Task<DTO.LoginResponse> Login(DTO.LoginRequest request)
         {
-            //  Hash the password here
+            var user = await _repo.GetByEmailAsync(request.Email);
+
+            if (user == null || string.IsNullOrEmpty(user.Password))
+                throw new Exception("User not found or password not set");
+
+            // HASH THE INPUT PASSWORD
             using var sha = SHA256.Create();
             var bytes = Encoding.UTF8.GetBytes(request.Password);
             var hash = sha.ComputeHash(bytes);
             var hashedPassword = Convert.ToBase64String(hash);
-            // Convert DTO → User model
-            var user = new User
-            {
 
-                Email = request.Email,
-                FullName = request.FullName,
-                LastName = request.LastName,
-                Password = hashedPassword,
-                Role = request.Role,
-                Status = "Active",
-               
-            };
+            if (user.Password != hashedPassword)
+                throw new Exception("Invalid password");
 
-            _repo.Add(user);
+            // GENERATE JWT
+            var token = GenerateJwtToken(user);
+
+            return new DTO.LoginResponse(token, "Login successful");
         }
     }
 }
