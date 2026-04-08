@@ -1,14 +1,20 @@
 ﻿@page "/login"
 @layout BlankLayout
 @rendermode InteractiveServer
+@using LeaveApplication.Components.Services
+@using LeaveApplication.Models
 @using Radzen
 @inject NavigationManager Navigation
 @inject NotificationService NotificationService
 @using System.ComponentModel.DataAnnotations
+@using System.IdentityModel.Tokens.Jwt
 @inject HttpClient Http
 @inject IJSRuntime JS
+@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
 
-
+@inject ProtectedLocalStorage ProtectedLocalStorage
+@inject ProtectedSessionStorage ProtectedSessionStorage
+@inject UserStateService UserState
 
 <!-- Loading Indicator -->
 @if (isLoading)
@@ -43,7 +49,7 @@
         <div class="company" style="margin-top: 1px;">Welcome back </div>
         <div class="company" style="margin-top: -17px;">Login </div>
 
-        <EditForm Model="@loginModel">
+        <EditForm Model="@loginModel" OnValidSubmit="@OnLoginCustom">
             <DataAnnotationsValidator />
             <ValidationSummary class="text-danger" />
 
@@ -72,16 +78,10 @@
                 <a href="/forgot-password">Forgot Password?</a>
             </div>
 
-            <button type="submit" disabled="@isLoading">
-                @if (isLoading)
-                {
-                    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                    <span>Logging in...</span>
-                }
-                else
-                {
+            <button type="submit" >
+               
                     <span>Login</span>
-                }
+                
             </button>
         </EditForm>
 
@@ -95,15 +95,87 @@
     private bool showError = false;
     private LoginModel loginModel = new();
 
+    private async Task OnLoginCustom()
+    {
+        isLoading = true;
+        showError = false;
+        StateHasChanged();
+
+        try
+        {
+
+            var response = await Http.PostAsJsonAsync("https://localhost:7043/api/users/login", loginModel);
+
+            if (response.IsSuccessStatusCode)
+            {
+                // Read the response (token + message) into 'result'
+                var result = await response.Content.ReadFromJsonAsync<LoginResponse>();
+
+                // Save token in localStorage
+                await JS.InvokeVoidAsync("localStorage.setItem", "authToken", result.Token);
+                var handler = new JwtSecurityTokenHandler();
+                var jwtToken = handler.ReadJwtToken(result.Token);
+
+                // Extract claims
+                string userName = jwtToken.Claims.FirstOrDefault(c => c.Type == "FullName")?.Value ?? "N/A";
+                string userEmail = jwtToken.Claims.FirstOrDefault(c => c.Type == "Email")?.Value ?? "N/A";
+                string userRole = jwtToken.Claims.FirstOrDefault(c => c.Type == "Role")?.Value ?? "N/A";
+
+                // Store in sessionStorage
+                await ProtectedSessionStorage.SetAsync("userName", userName);
+                await ProtectedSessionStorage.SetAsync("userEmail", userEmail);
+                await ProtectedSessionStorage.SetAsync("userRole", userRole);
+
+                UserState.SetUser(
+                     Role: userRole,
+                     name: userName,
+                    email: userEmail
+                     );
+
+
+                isLoading = false;
+                StateHasChanged();
+
+                Navigation.NavigateTo("/users");
+            }
+
+            else
+            {
+
+                isLoading = false;
+                showError = true;
+                StateHasChanged();
+
+
+                await Task.Delay(3000);
+                showError = false;
+                StateHasChanged();
+            }
+        }
+        catch (Exception ex)
+        {
+
+            isLoading = false;
+            showError = true;
+            StateHasChanged();
+
+            Console.WriteLine("Login error: " + ex.Message);
+
+            await Task.Delay(3000);
+            showError = false;
+            StateHasChanged();
+        }
+    }
+
     public class LoginModel
     {
+
         [Required(ErrorMessage = "Email is required")]
         [EmailAddress(ErrorMessage = "Invalid email address")]
         public string Email { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Password is required")]
         [DataType(DataType.Password)]
-        [MinLength(6, ErrorMessage = "Password must be at least 6 characters")]
         public string Password { get; set; } = string.Empty;
 
         public bool RememberMe { get; set; }

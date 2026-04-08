@@ -1,4 +1,5 @@
 using LeaveApplication.Components;
+using LeaveApplication.Components.Services;
 using Radzen;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -8,6 +9,7 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 builder.Services.AddRadzenComponents();
 builder.Services.AddHttpClient();
+builder.Services.AddScoped<UserStateService>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
