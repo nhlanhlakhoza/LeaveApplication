@@ -10,5 +10,6 @@ namespace LeaveApplicationBackend.Repositories
         Task<User> GetByEmailAsync(string email);
         Task<List<User>> GetAllUsers();
         Task Update(User user);
+        Task DeleteUser(User user);
     }
 }

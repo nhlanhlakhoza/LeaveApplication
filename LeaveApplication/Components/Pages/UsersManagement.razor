@@ -110,7 +110,8 @@
                 <button class="action-btn edit" @onclick="EditUser">
                     <i class="fas fa-edit"></i> Edit User
                 </button>
-                <button class="action-btn delete" >
+                <button class="action-btn delete"  @onclick="() => ConfirmDelete(SelectedUser)"
+                        disabled="@(SelectedUser == null)">
                     <i class="fas fa-trash"></i> Delete User
                 </button>
             </div>
@@ -128,9 +129,6 @@
 </div>
 
 
-
-
-
 <!-- Loading Indicator -->
 @if (IsLoading)
 {
@@ -141,7 +139,44 @@
         </div>
     </div>
 }
+@if (ShowDeleteDialog)
+{
+    <div class="modal-backdrop-custom" @onclick="CancelDelete"></div>
 
+    <div class="modal-container">
+        <div class="modal-card">
+
+            <!-- Header -->
+            <div class="modal-header">
+                <div class="warning-icon">⚠️</div>
+                <h5>Confirm Deletion</h5>
+            </div>
+
+            <!-- Body -->
+            <div class="modal-body">
+                <p>
+                    Are you sure you want to delete
+                    <b>@UserToDelete?.FullName @UserToDelete?.LastName</b>?
+                </p>
+                <p class="text-muted small">
+                    This action cannot be undone.
+                </p>
+            </div>
+
+            <!-- Footer -->
+            <div class="modal-footer">
+                <button class="btn btn-outline-secondary" @onclick="CancelDelete">
+                    Cancel
+                </button>
+
+                <button class="Btn delete-btn" @onclick="DeleteConfirmed">
+                    Yes, Delete
+                </button>
+            </div>
+
+        </div>
+    </div>
+}
 @code {
 
     User? SelectedUser;
@@ -160,7 +195,8 @@
     private int pageSize = 4;
     private int pageIndex = 0;
     private int count => FilteredUsers.Count;
-
+    private bool ShowDeleteDialog = false;
+    private User? UserToDelete;
     private IEnumerable<User> PagedUsers =>
         FilteredUsers.Skip(pageIndex * pageSize).Take(pageSize);
 
@@ -317,15 +353,7 @@
         }
     }
 
-    private async Task DeleteUser(User user)
-    {
-        if (await JSRuntime.InvokeAsync<bool>("confirm", $"Are you sure you want to delete {user.FullName}?"))
-        {
-            Users.Remove(user);
-            FilterUsers();
-            await JSRuntime.InvokeVoidAsync("alert", "User deleted successfully!");
-        }
-    }
+  
 
 
     private async Task RefreshData()
@@ -342,7 +370,36 @@
     {
         SelectedUser = user;
     }
+    private async Task DeleteConfirmed()
+    {
+        if (UserToDelete == null)
+            return;
 
+        var response = await Http.DeleteAsync(
+            $"https://localhost:7043/api/users/delete-by-email/{UserToDelete.Email}"
+        );
+
+        if (response.IsSuccessStatusCode)
+        {
+            Users.Remove(UserToDelete);
+            FilterUsers();
+            SelectedUser = null;
+        }
+
+        ShowDeleteDialog = false;
+        UserToDelete = null;
+    }
+
+    private void ConfirmDelete(User user)
+    {
+        UserToDelete = user;
+        ShowDeleteDialog = true;
+    }
+    private void CancelDelete()
+    {
+        ShowDeleteDialog = false;
+        UserToDelete = null;
+    }
     public class User
     {
        

@@ -12,5 +12,6 @@ namespace LeaveApplicationBackend.Services
         Task<List<AllUsers>> GetAllUsers();
         Task<bool> EditUserByEmail(string email, DTO.RegisterRequest request);
         Task<AllUsers?> GetUserByEmail(string email);
+        Task<bool> DeleteUserByEmail(string email);
     }
 }

@@ -1,4 +1,5 @@
 ﻿
+using LeaveApplicationBackend.Data;
 using LeaveApplicationBackend.DTO;
 using LeaveApplicationBackend.Models;
 using LeaveApplicationBackend.Repositories;
@@ -183,6 +184,20 @@ namespace LeaveApplicationBackend.Services
             user.Email = request.Email;
 
             await _repo.Update(user);
+
+            return true;
+        }
+        private readonly AppDbContext _context;
+
+       
+        public async Task<bool> DeleteUserByEmail(string email)
+        {
+            var user = await _repo.GetByEmailAsync(email);
+
+            if (user == null)
+                return false;
+
+            await _repo.DeleteUser(user);
 
             return true;
         }

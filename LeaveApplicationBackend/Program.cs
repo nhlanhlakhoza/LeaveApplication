@@ -17,20 +17,7 @@ builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-WebApplication app;
-try
-{
-    app = builder.Build();
-}
-catch (InvalidOperationException ex)
-{
-    // If Build() was already called (for example when multiple startup projects are launched)
-    // fail gracefully so the debugger doesn't crash with an unhandled exception.
-    Console.WriteLine("Warning: WebApplicationBuilder.Build() called more than once. Exiting.");
-    Console.WriteLine(ex.Message);
-    Environment.Exit(0);
-    throw; // unreachable, but keeps compiler happy about definite assignment
-}
+var app = builder.Build();
 
 app.UseSwagger();
 app.UseSwaggerUI();

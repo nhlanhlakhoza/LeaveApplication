@@ -138,7 +138,16 @@ namespace LeaveApplicationBackend.Controllers
                 return StatusCode(500, new { message = "Something went wrong", error = ex.Message });
             }
         }
+        [HttpDelete("delete-by-email/{email}")]
+        public async Task<IActionResult> DeleteUser(string email)
+        {
+            var result = await _service.DeleteUserByEmail(email);
 
+            if (!result)
+                return NotFound("User not found");
+
+            return Ok(new { message = "User deleted successfully" });
+        }
 
     }
 }
