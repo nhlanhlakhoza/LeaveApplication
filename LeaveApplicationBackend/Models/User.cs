@@ -18,7 +18,11 @@ namespace LeaveApplicationBackend.Models
 
         [Required]
         public string Status { get; set; }
+        [Required]
+        public string Position {  get; set; }
 
-     
+        [Required]
+        public string Department { get; set; }
+
     }
 }

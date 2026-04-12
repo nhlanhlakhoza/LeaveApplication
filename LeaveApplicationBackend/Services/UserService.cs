@@ -42,7 +42,8 @@ namespace LeaveApplicationBackend.Services
                 Password = hashedPassword,
                 Role = request.Role,
                 Status = "Active",
-
+                Position = request.Position,
+                Department=request.Department,
             };
 
             //  Save to database

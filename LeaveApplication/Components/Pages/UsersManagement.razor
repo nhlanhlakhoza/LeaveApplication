@@ -40,87 +40,87 @@
 
     <!-- Users Table -->
     <div class="table-and-quick-actions">
-    <div class="users-table-container">
-        <div class="table-header">
-            <h2><i class="fas fa-list"></i> All Users</h2>
-            <div class="table-actions">
-                <span>@FilteredUsers.Count users</span>
+        <div class="users-table-container">
+            <div class="table-header">
+                <h2><i class="fas fa-list"></i> All Users</h2>
+                <div class="table-actions">
+                    <span>@FilteredUsers.Count users</span>
+                </div>
             </div>
-        </div>
-        <table>
-            <thead>
-                <tr>
-                    <th>User</th>
-                    <th>Role</th>
-                    <th>Department</th>
-                    <th>Status</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var user in PagedUsers)
-                {
+            <table>
+                <thead>
                     <tr>
-                        <td>
-                            <div class="user-info">
-                                <div class="user-avatar">@GetUserInitials(user.FullName, user.LastName)</div>
-                                <div class="user-details">
-                                    <div class="user-fullName"> @($"{user.FullName} {user.LastName}".ToUpper())</div>
-                                    <div class="user-email">@user.Email</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td>
-                            <span class="role-badge role-@user.Role">
-                                @GetRoleDisplayName(user.Role)
-                            </span>
-                        </td>
-                        <td>@user.Department</td>
-                        
-                        <td>
-                            <span class="status-badge status-@user.Status">
-                                @user.Status.ToUpper()
-                            </span>
-                        </td>
-                       
+                        <th>User</th>
+                        <th>Role</th>
+                        <th>Department</th>
+                        <th>Status</th>
                     </tr>
-                }
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    @foreach (var user in PagedUsers)
+                    {
+                        <tr>
+                            <td>
+                                <div class="user-info">
+                                    <div class="user-avatar">@GetUserInitials(user.FullName, user.LastName)</div>
+                                    <div class="user-details">
+                                        <div class="user-fullName"> @($"{user.FullName} {user.LastName}".ToUpper())</div>
+                                        <div class="user-email">@user.Email</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="role-badge role-@user.Role">
+                                    @GetRoleDisplayName(user.Role)
+                                </span>
+                            </td>
+                            <td>@user.Department</td>
+                        
+                            <td>
+                                <span class="status-badge status-@user.Status">
+                                    @user.Status.ToUpper()
+                                </span>
+                            </td>
+                       
+                        </tr>
+                    }
+                </tbody>
+            </table>
         </div>
 
 
      
 
-    <!-- Quick Actions Panel (right side) -->
-  <div class="users-table-quickAction"
+        <!-- Quick Actions Panel (right side) -->
+        <div class="users-table-quickAction"
     
-        <div class="table-header">
-        <h2><i class="fas fa-user"></i>Quick Actions</h2>
-        </div>
-        <div class="quick-actions-panel">
-            <button class="action-btn refresh" @onclick="RefreshData">
-            <i class="fas fa-sync-alt"></i> Refresh
-        </button>
-        <button class="action-btn add" @onclick="OnAddNavigation">
-            <i class="fas fa-user-plus"></i> Add New
-        </button>
+            <div class="table-header">
+                <h2><i class="fas fa-user"></i>Quick Actions</h2>
+            </div>
+            <div class="quick-actions-panel">
+                <button class="action-btn refresh" @onclick="RefreshData">
+                    <i class="fas fa-sync-alt"></i> Refresh
+                </button>
+                <button class="action-btn add" @onclick="OnAddNavigation">
+                    <i class="fas fa-user-plus"></i> Add New
+                </button>
         
-        <button class="action-btn edit">
-            <i class="fas fa-edit"></i> Edit User
-        </button>
-        <button class="action-btn delete" >
-            <i class="fas fa-trash"></i> Delete User
-        </button>
+                <button class="action-btn edit">
+                    <i class="fas fa-edit"></i> Edit User
+                </button>
+                <button class="action-btn delete" >
+                    <i class="fas fa-trash"></i> Delete User
+                </button>
+            </div>
+        </div>
     </div>
-      </div>
-  </div>
 
     <div class="pager-container">
-    <RadzenPager Count="@count"
-                 PageSize="@pageSize"
-                 PageNumbersCount="6"
-                 PageChanged="@PageChanged" />
-</div>
+        <RadzenPager Count="@count"
+                     PageSize="@pageSize"
+                     PageNumbersCount="6"
+                     PageChanged="@PageChanged" />
+    </div>
 
 
 </div>
@@ -174,14 +174,14 @@
             </EditForm>
             <br />
             @if (!string.IsNullOrEmpty(SuccessMessage))
-{
-    <div class="alert alert-success text-center">@SuccessMessage</div>
-}
+            {
+                <div class="alert alert-success text-center">@SuccessMessage</div>
+            }
 
-@if (!string.IsNullOrEmpty(ErrorMessage))
-{
-    <div class="alert alert-danger text-center">@ErrorMessage</div>
-}
+            @if (!string.IsNullOrEmpty(ErrorMessage))
+            {
+                <div class="alert alert-danger text-center">@ErrorMessage</div>
+            }
 
         </div>
     </div>
@@ -326,7 +326,7 @@
 
     private void ShowAddUserModal()
     {
-        CurrentUser = new User { Status="active" };
+        CurrentUser = new User { Status = "active" };
         EditingUser = false;
         ShowModal = true;
     }

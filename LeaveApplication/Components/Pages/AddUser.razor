@@ -15,96 +15,237 @@
     </div>
 <!-- Form -->
   <div class="card-body p-4">
-                    <form method="post" class="row g-3 align-items-start">
-                        <div class="col-12 col-md-4">
-                            <label class="form-label mb-1">First Name</label>
-                        </div>
-                        <div class="col-12 col-md-8">
-                            <input asp-for="Employee.FirstName" class="form-control" placeholder="e.g., John" required autofocus />
-                            <span asp-validation-for="Employee.FirstName" class="text-danger small"></span>
-                        </div>
+  <EditForm Model="CurrentUser" OnValidSubmit="SaveUser" class="row g-3 align-items-start">
+    <DataAnnotationsValidator />
 
-                        <div class="col-12 col-md-4">
-                            <label class="form-label mb-1">Last Name</label>
-                        </div>
-                        <div class="col-12 col-md-8">
-                            <input asp-for="Employee.LastName" class="form-control" placeholder="e.g., Doe" required />
-                            <span asp-validation-for="Employee.LastName" class="text-danger small"></span>
-                        </div>
+    <!-- First Name -->
+    <div class="col-12 col-md-4">
+        <label class="form-label mb-1">First Name</label>
+    </div>
+    <div class="col-12 col-md-8">
+        <InputText @bind-Value="CurrentUser.FullName"
+                   class="form-control"
+                   placeholder="e.g., John" />
+        <ValidationMessage For="() => CurrentUser.FullName" class="text-danger small" />
+    </div>
 
-                        <div class="col-12 col-md-4">
-                            <label class="form-label mb-1">Email Address</label>
-                        </div>
-                        <div class="col-12 col-md-8">
-                            <input asp-for="Employee.Email" class="form-control" type="email" placeholder="e.g., john.doe@company.com" required />
-                            <span asp-validation-for="Employee.Email" class="text-danger small"></span>
-                        </div>
-                         <div class="col-12 col-md-4">
-                          <label class="form-label mb-1">Employee Number</label>
-                        </div>
-                            <div class="col-12 col-md-8">
-                             <input asp-for="Employee.EmployeeNumber" class="form-control"  placeholder="ICT12223" required />
-                        <span asp-validation-for="Employee.EmployeeNumber" class="text-danger small"></span>
-                        </div>
-                        <div class="col-12 col-md-4">
-                            <label class="form-label mb-1">Gender</label>
-                        </div>
-                        <div class="col-12 col-md-8">
-                            <select asp-for="Employee.Gender" class="form-select" required>
-                                <option value="">Select Gender...</option>
-                                <option value="Male">Male</option>
-                                <option value="Female">Female</option>
-                                <option value="Other">Other</option>
-                            </select>
-                        </div>
+    <!-- Last Name -->
+    <div class="col-12 col-md-4">
+        <label class="form-label mb-1">Last Name</label>
+    </div>
+    <div class="col-12 col-md-8">
+        <InputText @bind-Value="CurrentUser.LastName"
+                   class="form-control"
+                   placeholder="e.g., Doe" />
+        <ValidationMessage For="() => CurrentUser.LastName" class="text-danger small" />
+    </div>
 
-                        <div class="col-12 col-md-4">
-                            <label class="form-label mb-1">Position</label>
-                        </div>
-                        <div class="col-12 col-md-8">
-                            <select asp-for="Employee.Position" class="form-select" required>
-                                <option value="">Select Position...</option>
-                                <option value="Software Developer">Software Developer</option>
-                                <option value="System Administrator">System Administrator</option>
-                                <option value="IT Support">IT Support</option>
-                                <option value="Project Manager">Project Manager</option>
-                                <option value="Manager">Manager</option>
-                              
-                            </select>
-                        </div>
+    <!-- Email Address -->
+    <div class="col-12 col-md-4">
+        <label class="form-label mb-1">Email Address</label>
+    </div>
+    <div class="col-12 col-md-8">
+        <InputText @bind-Value="CurrentUser.Email"
+                   type="email"
+                   class="form-control"
+                   placeholder="e.g., john.doe@company.com" />
+        <ValidationMessage For="() => CurrentUser.Email" class="text-danger small" />
+    </div>
 
-                        <div class="col-12 col-md-4">
-                            <label class="form-label mb-1">Department</label>
-                        </div>
-                        <div class="col-12 col-md-8">
-                            <select asp-for="Employee.Department" class="form-select" required>
-                                <option value="">Select Department...</option>
-                                <option value="ICT">ICT</option>
-                                <option value="Development">Development</option>
-                                <option value="Support">Support</option>
-                                <option value="HR">HR</option>
-                                <option value="Finance">Finance</option>
-                            </select>
-                        </div>
+    
 
-                        <!-- Buttons -->
-                        <div class="col-12 mt-4 text-end">
-            <button type="submit" class="btn save-btn px-5 py-2 me-3">
-                                Save
-                            </button>
-            <a asp-page="/users" class="btn btn-outline-secondary px-5 py-2" @onclick="OnNavigation">
-                                Cancel
-                            </a>
-                        </div>
-                    </form>
-                </div>
+    <!-- Position -->
+    <div class="col-12 col-md-4">
+        <label class="form-label mb-1">Position</label>
+    </div>
+    <div class="col-12 col-md-8">
+        <InputSelect @bind-Value="CurrentUser.Position"
+                     class="form-select">
+            <option value="">Select Position...</option>
+            <option value="Software Developer">Software Developer</option>
+            <option value="System Administrator">System Administrator</option>
+            <option value="IT Support">IT Support</option>
+            <option value="Project Manager">Project Manager</option>
+            <option value="Manager">Manager</option>
+        </InputSelect>
+        <ValidationMessage For="() => CurrentUser.Position" class="text-danger small" />
+    </div>
+
+    <!-- Department -->
+    <div class="col-12 col-md-4">
+        <label class="form-label mb-1">Department</label>
+    </div>
+    <div class="col-12 col-md-8">
+        <InputSelect @bind-Value="CurrentUser.Department"
+                     class="form-select">
+            <option value="">Select Department...</option>
+            <option value="ICT">ICT</option>
+            <option value="Development">Development</option>
+            <option value="Support">Support</option>
+            <option value="HR">HR</option>
+            <option value="Finance">Finance</option>
+        </InputSelect>
+        <ValidationMessage For="() => CurrentUser.Department" class="text-danger small" />
+    </div>
+     <!-- Department -->
+    <div class="col-12 col-md-4">
+        <label class="form-label mb-1">Role</label>
+    </div>
+    <div class="col-12 col-md-8">
+        <InputSelect @bind-Value="CurrentUser.Role"
+                     class="form-select">
+            <option value="">Select Role...</option>
+            <option value="Admin">Administrator</option>
+            <option value="Employee">Employee</option>
+            
+        </InputSelect>
+        <ValidationMessage For="() => CurrentUser.Department" class="text-danger small" />
+    </div>
+    <!-- Buttons -->
+    <div class="col-12 mt-4 text-end">
+        <button type="submit" class="btn save-btn px-5 py-2 me-3">
+            Save
+        </button>
+        <a href="/users" class="btn btn-outline-secondary px-5 py-2">
+            Cancel
+        </a>
+    </div>
+</EditForm>         </div>
        
+ @if (!string.IsNullOrEmpty(SuccessMessage))
+{
+    <div class="alert alert-success text-center">@SuccessMessage</div>
+}
+
+@if (!string.IsNullOrEmpty(ErrorMessage))
+{
+    <div class="alert alert-danger text-center">@ErrorMessage</div>
+}
+<!-- Loading Indicator -->
+@if (IsLoading)
+{
+    <div class="loading-overlay">
+        <div class="loading-spinner">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p>@LoadingMessage</p>
+        </div>
+    </div>
+}
 
 @code {
+    private List<User> Users = new();
+    private List<User> FilteredUsers = new();
+    private User CurrentUser = new();
+    private bool ShowModal = false;
+    private bool EditingUser = false;
+    private bool IsLoading = false;
+    private string LoadingMessage = "";
+    private string roleFilter = "";
+    private string statusFilter = "";
+    private string SuccessMessage = "";
+    private string ErrorMessage = "";
+    private string searchTerm = "";
+    private int pageSize = 4;
+    private int pageIndex = 0;
+    private int count => FilteredUsers.Count;
 
+    private IEnumerable<User> PagedUsers =>
+        FilteredUsers.Skip(pageIndex * pageSize).Take(pageSize);
+
+
+    void PageChanged(Radzen.PagerEventArgs args)
+    {
+        pageIndex = args.PageIndex;
+    }
+
+
+    private string SearchTerm
+    {
+        get => searchTerm;
+        set
+        {
+            searchTerm = value;
+            FilterUsers();
+        }
+    }
     private async Task OnNavigation()
     {
         Navigation.NavigateTo("/users");
     }
 
+     private async Task SaveUser()
+    {
+        try
+        {
+            IsLoading = true;
+            LoadingMessage = "Saving user...";
+            StateHasChanged();
+
+            var response = await Http.PostAsJsonAsync("https://localhost:7043/api/users/create", CurrentUser);
+
+            if (response.IsSuccessStatusCode)
+            {
+
+                IsLoading = false;
+
+                SuccessMessage = "User created successfully!";
+                ErrorMessage = "";
+                StateHasChanged();
+
+               
+                await Task.Delay(3000);
+                 Navigation.NavigateTo("/users");
+            }
+            else
+            {
+                // API returned an error TEXT not JSON
+                ErrorMessage = await response.Content.ReadAsStringAsync();
+                SuccessMessage = "";
+            }
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = "Unexpected error: " + ex.Message;
+            SuccessMessage = "";
+        }
+        finally
+        {
+            IsLoading = false;
+            StateHasChanged();
+        }
+    }
+    private void FilterUsers()
+    {
+        var filtered = Users.AsEnumerable();
+
+        if (!string.IsNullOrEmpty(SearchTerm))
+        {
+            filtered = filtered.Where(u =>
+                ($"{u.FullName} {u.LastName}").Contains(SearchTerm, StringComparison.OrdinalIgnoreCase) ||
+                u.Email.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase) ||
+                u.Department.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase)
+            );
+        }
+
+        FilteredUsers = filtered.ToList();
+        StateHasChanged();
+    }
+
+    public class User
+    {
+        
+        public string FullName { get; set; } = string.Empty;
+
+        
+        public string LastName { get; set; } = string.Empty;
+
+        public string Email { get; set; } = string.Empty;
+
+
+        public string Department { get; set; } = string.Empty;
+        public string Status { get; set; } = "active";
+        public string Password { get; set; } = "";
+        public string Position { get; set; } = "";
+         public string Role { get; set; } = "";
+    }
 }
