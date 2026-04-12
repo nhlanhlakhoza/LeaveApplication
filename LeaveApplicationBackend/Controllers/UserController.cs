@@ -81,6 +81,64 @@ namespace LeaveApplicationBackend.Controllers
                 .Select(s => s[random.Next(s.Length)]).ToArray());
         }
 
+        [HttpGet("all")]
+        public async Task<IActionResult> GetAllUsers()
+        {
+            var users = await _service.GetAllUsers();
+            return Ok(users);
+        }
+
+        [HttpPut("edit-by-email/{email}")]
+        public async Task<IActionResult> EditUser(string email, [FromBody] DTO.RegisterRequest request)
+        {
+            if (string.IsNullOrWhiteSpace(email))
+                return BadRequest("Email is required");
+
+            try
+            {
+                var result = await _service.EditUserByEmail(email, request);
+
+                if (!result)
+                    return NotFound("User not found");
+
+                return Ok(new { message = "User updated successfully" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
+
+
+
+        [HttpGet("by-email/{email}")]
+        public async Task<IActionResult> GetUserByEmail(string email)
+        {
+            if (string.IsNullOrWhiteSpace(email))
+            {
+                return BadRequest(new { message = "Email is required" });
+            }
+
+            try
+            {
+                // Decode email from URL
+                var decodedEmail = Uri.UnescapeDataString(email);
+
+                var user = await _service.GetUserByEmail(decodedEmail);
+
+                if (user == null)
+                {
+                    return NotFound(new { message = "User not found" });
+                }
+
+                return Ok(user);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Something went wrong", error = ex.Message });
+            }
+        }
+
 
     }
 }

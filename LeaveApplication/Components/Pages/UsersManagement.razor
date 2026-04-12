@@ -59,7 +59,9 @@
                 <tbody>
                     @foreach (var user in PagedUsers)
                     {
-                        <tr>
+                        <tr @onclick="() => SelectUser(user)"
+                            class="@(SelectedUser?.Email == user.Email ? "selected-row" : "")"
+                            style="cursor:pointer;">
                             <td>
                                 <div class="user-info">
                                     <div class="user-avatar">@GetUserInitials(user.FullName, user.LastName)</div>
@@ -105,7 +107,7 @@
                     <i class="fas fa-user-plus"></i> Add New
                 </button>
         
-                <button class="action-btn edit">
+                <button class="action-btn edit" @onclick="EditUser">
                     <i class="fas fa-edit"></i> Edit User
                 </button>
                 <button class="action-btn delete" >
@@ -125,67 +127,8 @@
 
 </div>
 
-@if (ShowModal)
-{
-    <div class="modal show">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>@(EditingUser ? "Edit User" : "Add New User")</h3>
-                <button class="close-btn" @onclick="CloseModal">&times;</button>
-            </div>
 
-            <EditForm Model="@CurrentUser" OnValidSubmit="@SaveUser">
-                <DataAnnotationsValidator />
 
-                <div class="form-group">
-                    <label>Full Name *</label>
-                    <InputText @bind-Value="@CurrentUser.FullName" class="form-control" />
-                </div>
-
-                <div class="form-group">
-                    <label>Last Name *</label>
-                    <InputText @bind-Value="@CurrentUser.LastName" class="form-control" />
-                </div>
-
-                <div class="form-group">
-                    <label>Email *</label>
-                    <InputText @bind-Value="@CurrentUser.Email" class="form-control" />
-                </div>
-
-                <div class="form-group">
-                    <label>Role *</label>
-                    <InputSelect @bind-Value="@CurrentUser.Role" class="form-control">
-                        <option value="">Select Role</option>
-                        <option value="admin">Administrator</option>
-                        <option value="inspector">Inspector</option>
-                        <option value="manager">Manager</option>
-                    </InputSelect>
-                </div>
-
-                <div class="form-group">
-                    <label>Department *</label>
-                    <InputText @bind-Value="@CurrentUser.Department" class="form-control" />
-                </div>
-
-                <div class="form-actions">
-                    <button type="button" class="btn btn-secondary" @onclick="CloseModal">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Save User</button>
-                </div>
-            </EditForm>
-            <br />
-            @if (!string.IsNullOrEmpty(SuccessMessage))
-            {
-                <div class="alert alert-success text-center">@SuccessMessage</div>
-            }
-
-            @if (!string.IsNullOrEmpty(ErrorMessage))
-            {
-                <div class="alert alert-danger text-center">@ErrorMessage</div>
-            }
-
-        </div>
-    </div>
-}
 
 
 <!-- Loading Indicator -->
@@ -200,6 +143,8 @@
 }
 
 @code {
+
+    User? SelectedUser;
     private List<User> Users = new();
     private List<User> FilteredUsers = new();
     private User CurrentUser = new();
@@ -268,7 +213,7 @@
         try
         {
             Users = Http.GetFromJsonAsync<List<User>>(
-                "https://localhost:7272/api/users/all"
+                "https://localhost:7043/api/users/all"
             ).GetAwaiter().GetResult();
         }
         catch (Exception ex)
@@ -358,56 +303,19 @@
         CurrentUser = new User();
     }
 
-    private async Task SaveUser()
-    {
-        try
-        {
-            IsLoading = true;
-            LoadingMessage = "Saving user...";
-            StateHasChanged();
-
-            var response = await Http.PostAsJsonAsync("https://localhost:7272/api/users/create", CurrentUser);
-
-            if (response.IsSuccessStatusCode)
-            {
-
-                IsLoading = false;
-
-                SuccessMessage = "User created successfully!";
-                ErrorMessage = "";
-                StateHasChanged();
-
-
-                await Task.Delay(3000);
-
-                CloseModal();
-
-
-            }
-            else
-            {
-                // API returned an error TEXT not JSON
-                ErrorMessage = await response.Content.ReadAsStringAsync();
-                SuccessMessage = "";
-            }
-        }
-        catch (Exception ex)
-        {
-            ErrorMessage = "Unexpected error: " + ex.Message;
-            SuccessMessage = "";
-        }
-        finally
-        {
-            IsLoading = false;
-            StateHasChanged();
-        }
-    }
+   
 
     private async Task OnAddNavigation()
     {
         Navigation.NavigateTo("/AddUsers");
     }
-
+    void EditUser()
+    {
+        if (SelectedUser != null)
+        {
+            Navigation.NavigateTo($"/edit-user/{SelectedUser.Email}");
+        }
+    }
 
     private async Task DeleteUser(User user)
     {
@@ -430,9 +338,14 @@
         IsLoading = false;
         
     }
+    void SelectUser(User user)
+    {
+        SelectedUser = user;
+    }
 
     public class User
     {
+       
         public string FullName { get; set; } = string.Empty;
         public string LastName { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
@@ -440,5 +353,6 @@
         public string Department { get; set; } = string.Empty;
         public string Status { get; set; } = "active";
         public string password { get; set; } = "";
+    
     }
 }

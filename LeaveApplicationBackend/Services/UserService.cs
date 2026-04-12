@@ -1,7 +1,9 @@
 ﻿
+using LeaveApplicationBackend.DTO;
 using LeaveApplicationBackend.Models;
 using LeaveApplicationBackend.Repositories;
 using Microsoft.AspNetCore.Identity.Data;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -24,7 +26,7 @@ namespace LeaveApplicationBackend.Services
             _repo = repo;
 
         }
-
+       
         public async Task CreateUser(DTO.RegisterRequest request)
         {
             //  Hash the password here
@@ -43,7 +45,7 @@ namespace LeaveApplicationBackend.Services
                 Role = request.Role,
                 Status = "Active",
                 Position = request.Position,
-                Department=request.Department,
+                Department = request.Department,
             };
 
             //  Save to database
@@ -55,7 +57,7 @@ namespace LeaveApplicationBackend.Services
             return _repo.UserExists(email);
         }
 
-       
+
 
         // JWT GENERATOR
         private string GenerateJwtToken(User user)
@@ -105,6 +107,84 @@ namespace LeaveApplicationBackend.Services
             var token = GenerateJwtToken(user);
 
             return new DTO.LoginResponse(token, "Login successful");
+        }
+
+
+        public async Task<List<AllUsers>> GetAllUsers()
+        {
+            var users = await _repo.GetAllUsers();
+
+            return users.Select(u => new AllUsers
+            {
+                Id = u.Id,
+                FullName = u.FullName,
+                Lastname = u.LastName,
+                Email = u.Email,
+                Role = u.Role,
+                Department = u.Department,
+                Position = u.Position
+            }).ToList();
+        }
+
+        public async Task EditUser(DTO.RegisterRequest request)
+        {
+            var user = await _repo.GetByEmailAsync(request.Email); // or GetById
+
+            if (user == null)
+            {
+                throw new Exception("User not found");
+            }
+
+            // Update existing fields
+            user.FullName = request.FullName;
+            user.LastName = request.LastName;
+            user.Role = request.Role;
+            user.Position = request.Position;
+            user.Department = request.Department;
+
+            // Save changes
+            await _repo.Update(user);
+
+           
+        }
+
+        public async Task<AllUsers?> GetUserByEmail(string email)
+        {
+            var user = await _repo.GetByEmailAsync(email);
+
+            if (user == null)
+                return null;
+
+            return new AllUsers
+            {
+                Id = user.Id,
+                FullName = user.FullName,
+                Lastname = user.LastName,
+                Email = user.Email,
+                Role = user.Role,
+                Department = user.Department,
+                Position = user.Position
+            };
+        }
+
+        public async Task<bool> EditUserByEmail(string email, DTO.RegisterRequest request)
+        {
+            var user = await _repo.GetByEmailAsync(email);
+
+            if (user == null)
+                return false;
+
+           
+            user.FullName = request.FullName;
+            user.LastName = request.LastName;
+            user.Role = request.Role;
+            user.Position = request.Position;
+            user.Department = request.Department;
+            user.Email = request.Email;
+
+            await _repo.Update(user);
+
+            return true;
         }
     }
 }

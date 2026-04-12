@@ -1,0 +1,276 @@
+﻿@page "/edit-user/{Email}"
+@using Microsoft.AspNetCore.Components.Forms
+@inject IJSRuntime JSRuntime
+@inject HttpClient Http
+@using Radzen
+@inject NavigationManager Navigation
+@rendermode InteractiveServer
+<PageTitle>Add User </PageTitle>
+
+<div class="users-container">
+    <!-- Page Header -->
+    <div class="page-header">
+        <h1><i class="fas fa-user-plus me-2"></i> Add New Employee</h1>
+    </div>
+</div>
+<!-- Form -->
+<div class="card-body p-4">
+    <EditForm Model="CurrentUser" OnValidSubmit="SaveUser" class="row g-3 align-items-start">
+        <DataAnnotationsValidator />
+
+        <!-- First Name -->
+        <div class="col-12 col-md-4">
+            <label class="form-label mb-1">First Name</label>
+        </div>
+        <div class="col-12 col-md-8">
+            <InputText @bind-Value="CurrentUser.FullName"
+                       class="form-control"
+                       placeholder="e.g., John" />
+            <ValidationMessage For="() => CurrentUser.FullName" class="text-danger small" />
+        </div>
+
+        <!-- Last Name -->
+        <div class="col-12 col-md-4">
+            <label class="form-label mb-1">Last Name</label>
+        </div>
+        <div class="col-12 col-md-8">
+            <InputText @bind-Value="CurrentUser.LastName"
+                       class="form-control"
+                       placeholder="e.g., Doe" />
+            <ValidationMessage For="() => CurrentUser.LastName" class="text-danger small" />
+        </div>
+
+        <!-- Email Address -->
+        <div class="col-12 col-md-4">
+            <label class="form-label mb-1">Email Address</label>
+        </div>
+        <div class="col-12 col-md-8">
+            <InputText @bind-Value="CurrentUser.Email"
+                       type="email"
+                       class="form-control"
+                       placeholder="e.g., john.doe@company.com" />
+            <ValidationMessage For="() => CurrentUser.Email" class="text-danger small" />
+        </div>
+
+    
+
+        <!-- Position -->
+        <div class="col-12 col-md-4">
+            <label class="form-label mb-1">Position</label>
+        </div>
+        <div class="col-12 col-md-8">
+            <InputSelect @bind-Value="CurrentUser.Position"
+                         class="form-select">
+                <option value="">Select Position...</option>
+                <option value="Software Developer">Software Developer</option>
+                <option value="System Administrator">System Administrator</option>
+                <option value="IT Support">IT Support</option>
+                <option value="Project Manager">Project Manager</option>
+                <option value="Manager">Manager</option>
+            </InputSelect>
+            <ValidationMessage For="() => CurrentUser.Position" class="text-danger small" />
+        </div>
+
+        <!-- Department -->
+        <div class="col-12 col-md-4">
+            <label class="form-label mb-1">Department</label>
+        </div>
+        <div class="col-12 col-md-8">
+            <InputSelect @bind-Value="CurrentUser.Department"
+                         class="form-select">
+                <option value="">Select Department...</option>
+                <option value="ICT">ICT</option>
+                <option value="Development">Development</option>
+                <option value="Support">Support</option>
+                <option value="HR">HR</option>
+                <option value="Finance">Finance</option>
+            </InputSelect>
+            <ValidationMessage For="() => CurrentUser.Department" class="text-danger small" />
+        </div>
+        <!-- Department -->
+        <div class="col-12 col-md-4">
+            <label class="form-label mb-1">Role</label>
+        </div>
+        <div class="col-12 col-md-8">
+            <InputSelect @bind-Value="CurrentUser.Role"
+                         class="form-select">
+                <option value="">Select Role...</option>
+                <option value="Administrator">Administrator</option>
+                <option value="Employee">Employee</option>
+            
+            </InputSelect>
+            <ValidationMessage For="() => CurrentUser.Department" class="text-danger small" />
+        </div>
+        <!-- Buttons -->
+        <div class="col-12 mt-4 text-end">
+            <button type="submit" class="btn save-btn px-5 py-2 me-3">
+                Save
+            </button>
+            <a href="/users" class="btn btn-outline-secondary px-5 py-2">
+                Cancel
+            </a>
+        </div>
+    </EditForm>
+</div>
+       
+@if (!string.IsNullOrEmpty(SuccessMessage))
+{
+    <div class="alert alert-success text-center">@SuccessMessage</div>
+}
+
+@if (!string.IsNullOrEmpty(ErrorMessage))
+{
+    <div class="alert alert-danger text-center">@ErrorMessage</div>
+}
+<!-- Loading Indicator -->
+@if (IsLoading)
+{
+    <div class="loading-overlay">
+        <div class="loading-spinner">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p>@LoadingMessage</p>
+        </div>
+    </div>
+}
+
+@code {
+    private List<User> Users = new();
+    private List<User> FilteredUsers = new();
+    private User CurrentUser = new();
+    private bool ShowModal = false;
+    private bool EditingUser = false;
+    private bool IsLoading = false;
+    private string LoadingMessage = "";
+    private string roleFilter = "";
+    private string statusFilter = "";
+    private string SuccessMessage = "";
+    private string ErrorMessage = "";
+    private string searchTerm = "";
+    private int pageSize = 4;
+    private int pageIndex = 0;
+    private int count => FilteredUsers.Count;
+    [Parameter]
+    public string Email { get; set; }
+    private IEnumerable<User> PagedUsers =>
+        FilteredUsers.Skip(pageIndex * pageSize).Take(pageSize);
+
+
+    void PageChanged(Radzen.PagerEventArgs args)
+    {
+        pageIndex = args.PageIndex;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadUser();
+    }
+    private async Task LoadUser()
+    {
+        try
+        {
+            IsLoading = true;
+            LoadingMessage = "Loading user...";
+
+            var encodedEmail = Uri.EscapeDataString(Email);
+
+            CurrentUser = await Http.GetFromJsonAsync<User>(
+                $"https://localhost:7043/api/users/by-email/{encodedEmail}"
+            );
+
+            if (CurrentUser == null)
+            {
+                ErrorMessage = "User not found";
+            }
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = "Error loading user: " + ex.Message;
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+    private string SearchTerm
+    {
+        get => searchTerm;
+        set
+        {
+            searchTerm = value;
+            FilterUsers();
+        }
+    }
+    private async Task OnNavigation()
+    {
+        Navigation.NavigateTo("/users");
+    }
+
+    private async Task SaveUser()
+    {
+        try
+        {
+            IsLoading = true;
+            LoadingMessage = "Updating user...";
+
+            var response = await Http.PutAsJsonAsync(
+                $"https://localhost:7043/api/users/edit-by-email/{Uri.EscapeDataString(CurrentUser.Email)}",
+                CurrentUser
+            );
+
+            if (response.IsSuccessStatusCode)
+            {
+                SuccessMessage = "User updated successfully!";
+                ErrorMessage = "";
+
+                await Task.Delay(2000);
+                Navigation.NavigateTo("/users");
+            }
+            else
+            {
+                ErrorMessage = await response.Content.ReadAsStringAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = ex.Message;
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+    private void FilterUsers()
+    {
+        var filtered = Users.AsEnumerable();
+
+        if (!string.IsNullOrEmpty(SearchTerm))
+        {
+            filtered = filtered.Where(u =>
+                ($"{u.FullName} {u.LastName}").Contains(SearchTerm, StringComparison.OrdinalIgnoreCase) ||
+                u.Email.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase) ||
+                u.Department.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase)
+            );
+        }
+
+        FilteredUsers = filtered.ToList();
+        StateHasChanged();
+    }
+
+    public class User
+    {
+        
+        public string FullName { get; set; } = string.Empty;
+
+        
+        public string LastName { get; set; } = string.Empty;
+
+        public string Email { get; set; } = string.Empty;
+
+
+        public string Department { get; set; } = string.Empty;
+        public string Status { get; set; } = "active";
+        public string Password { get; set; } = "";
+        public string Position { get; set; } = "";
+        public string Role { get; set; } = "";
+    }
+}

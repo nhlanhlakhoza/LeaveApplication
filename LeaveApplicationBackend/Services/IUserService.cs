@@ -9,5 +9,8 @@ namespace LeaveApplicationBackend.Services
         Task<bool> UserExists(string email);
         Task CreateUser(DTO.RegisterRequest request);
         Task<LoginResponse> Login(DTO.LoginRequest request);
+        Task<List<AllUsers>> GetAllUsers();
+        Task<bool> EditUserByEmail(string email, DTO.RegisterRequest request);
+        Task<AllUsers?> GetUserByEmail(string email);
     }
 }

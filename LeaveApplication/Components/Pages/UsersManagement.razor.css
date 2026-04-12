@@ -544,3 +544,8 @@ input:checked + .slider {
     border-radius: 10px;
     overflow: hidden;
 }
+
+.selected-row {
+    background-color: #e5e9ea !important; /* light blue */
+    font-weight: bold;
+}
