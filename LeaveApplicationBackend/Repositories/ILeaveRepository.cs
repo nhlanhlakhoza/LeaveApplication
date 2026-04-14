@@ -12,5 +12,6 @@ namespace LeaveApplicationBackend.Repositories
         Task<LeaveBalance?> GetBalance(string email);
         Task UpdateBalance(LeaveBalance balance);
         Task AddBalance(LeaveBalance balance);
+        Task<List<LeaveApplication>> GetLeavesForWeek(DateTime start, DateTime end);
     }
 }

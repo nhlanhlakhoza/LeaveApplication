@@ -69,6 +69,14 @@ namespace LeaveApplicationBackend.Repositories
             _context.LeaveBalances.Add(balance);
             await _context.SaveChangesAsync();
         }
+        public async Task<List<LeaveApplication>> GetLeavesForWeek(DateTime start, DateTime end)
+        {
+            return await _context.LeaveApplications
+                .Where(l => l.Status == "Approved" &&
+                            l.StartDate <= end &&
+                            l.EndDate >= start)
+                .ToListAsync();
+        }
     }
 
  }

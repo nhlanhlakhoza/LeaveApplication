@@ -1,4 +1,5 @@
-﻿using LeaveApplicationBackend.Models;
+﻿using LeaveApplicationBackend.DTO;
+using LeaveApplicationBackend.Models;
 using LeaveApplicationBackend.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -15,11 +16,11 @@ namespace LeaveApplicationBackend.Controllers
             _service = service;
         }
 
-        // ✅ APPLY LEAVE (AUTO ASSIGN APPROVER)
+        
         [HttpPost("apply")]
-        public async Task<IActionResult> ApplyLeave([FromBody] LeaveApplication leave, string email)
+        public async Task<IActionResult> ApplyLeave([FromBody] ApplyLeaveDTO dto, string email)
         {
-            var result = await _service.ApplyLeave(email, leave);
+            var result = await _service.ApplyLeave(email, dto);
 
             if (result.Contains("not found") || result.Contains("No approver"))
                 return BadRequest(result);
@@ -33,25 +34,12 @@ namespace LeaveApplicationBackend.Controllers
             return Ok(await _service.GetAll());
         }
 
-        // ✅ APPROVE (FINAL)
-        [HttpPut("approve/{id}")]
-        public async Task<IActionResult> Approve(int id, string approverEmail)
+        [HttpPut("process/{id}")]
+        public async Task<IActionResult> Process(int id, string approverEmail, int action)
         {
-            var result = await _service.ApproveLeave(id, approverEmail);
+            var result = await _service.ProcessLeave(id, approverEmail, action);
 
-            if (result.Contains("Not allowed") || result.Contains("Not found"))
-                return BadRequest(result);
-
-            return Ok(result);
-        }
-
-        // ❌ REJECT
-        [HttpPut("reject/{id}")]
-        public async Task<IActionResult> Reject(int id, string approverEmail)
-        {
-            var result = await _service.RejectLeave(id, approverEmail);
-
-            if (result.Contains("Not allowed") || result.Contains("Not found"))
+            if (result.Contains("Not") || result.Contains("Invalid"))
                 return BadRequest(result);
 
             return Ok(result);

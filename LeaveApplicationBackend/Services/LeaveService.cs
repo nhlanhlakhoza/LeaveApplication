@@ -1,4 +1,5 @@
 ﻿using backendMpact.Services;
+using LeaveApplicationBackend.DTO;
 using LeaveApplicationBackend.Models;
 using LeaveApplicationBackend.Repositories;
 
@@ -16,7 +17,7 @@ namespace LeaveApplicationBackend.Services
             _emailService = emailService;
         }
 
-        public async Task<string> ApplyLeave(string email, LeaveApplication leave)
+        public async Task<string> ApplyLeave(string email, ApplyLeaveDTO dto)
         {
             var user = await _userRepo.GetByEmailAsync(email);
             var balance = await _repo.GetBalance(email);
@@ -24,18 +25,18 @@ namespace LeaveApplicationBackend.Services
             if (user == null || balance == null)
                 return "User or balance not found";
 
-            //  CALCULATE DAYS FROM DATES
-            leave.NumberOfDays = CalculateLeaveDays(leave.StartDate, leave.EndDate);
+            //  CALCULATE DAYS
+            int numberOfDays = CalculateLeaveDays(dto.StartDate, dto.EndDate);
 
-            if (leave.NumberOfDays <= 0)
+            if (numberOfDays <= 0)
                 return "Invalid date range";
 
-            //  CHECK BALANCE USING CALCULATED DAYS
-            bool hasEnough = leave.LeaveType switch
+            //  CHECK BALANCE
+            bool hasEnough = dto.LeaveType switch
             {
-                "Annual" => balance.AnnualLeave >= leave.NumberOfDays,
-                "Sick" => balance.SickLeave >= leave.NumberOfDays,
-                "Family" => balance.FamilyLeave >= leave.NumberOfDays,
+                "Annual" => balance.AnnualLeave >= numberOfDays,
+                "Sick" => balance.SickLeave >= numberOfDays,
+                "Family" => balance.FamilyLeave >= numberOfDays,
                 _ => false
             };
 
@@ -48,9 +49,18 @@ namespace LeaveApplicationBackend.Services
             if (approver == null)
                 return "No approver found";
 
-            leave.EmployeeEmail = email;
-            leave.Status = "Pending";
-            leave.ApproverEmail = approver.Email;
+            //  MAP DTO → MODEL
+            var leave = new LeaveApplication
+            {
+                EmployeeEmail = email,
+                EmployeeName=dto.EmployeeName,
+                LeaveType = dto.LeaveType,
+                StartDate = dto.StartDate,
+                EndDate = dto.EndDate,
+                NumberOfDays = numberOfDays,
+                Status = "Pending",
+                ApproverEmail = approver.Email
+            };
 
             await _repo.AddLeave(leave);
 
@@ -58,7 +68,8 @@ namespace LeaveApplicationBackend.Services
             await _emailService.SendEmailAsync(
                 approver.Email,
                 "New Leave Request",
-                $"{user.FullName} requested {leave.NumberOfDays} day(s) of {leave.LeaveType} leave.",null
+                $"{user.FullName} requested {numberOfDays} day(s) of {dto.LeaveType} leave.",
+                null
             );
 
             return "Leave submitted successfully";
@@ -84,7 +95,7 @@ namespace LeaveApplicationBackend.Services
             return await _repo.GetAll();
         }
 
-        public async Task<string> ApproveLeave(int id, string approverEmail)
+        public async Task<string> ProcessLeave(int id, string approverEmail, int action)
         {
             var leave = await _repo.GetById(id);
 
@@ -94,45 +105,64 @@ namespace LeaveApplicationBackend.Services
             if (leave.ApproverEmail != approverEmail)
                 return "Not allowed";
 
-            var balance = await _repo.GetBalance(leave.EmployeeEmail);
-
-            //  DEDUCT DAYS
-            switch (leave.LeaveType)
+            //  APPROVE
+            if (action == 1)
             {
-                case "Annual":
-                    balance.AnnualLeave -= leave.NumberOfDays;
-                    break;
+                var balance = await _repo.GetBalance(leave.EmployeeEmail);
 
-                case "Sick":
-                    balance.SickLeave -= leave.NumberOfDays;
-                    break;
+                if (balance == null)
+                    return "Balance not found";
 
-                case "Family":
-                    balance.FamilyLeave -= leave.NumberOfDays;
-                    break;
+                //  DEDUCT DAYS
+                switch (leave.LeaveType)
+                {
+                    case "Annual":
+                        balance.AnnualLeave -= leave.NumberOfDays;
+                        break;
+
+                    case "Sick":
+                        balance.SickLeave -= leave.NumberOfDays;
+                        break;
+
+                    case "Family":
+                        balance.FamilyLeave -= leave.NumberOfDays;
+                        break;
+                }
+
+                leave.Status = "Approved";
+                leave.ActionDate = DateTime.Now;
+                await _repo.UpdateBalance(balance);
+                await _repo.UpdateLeave(leave);
+
+                //  EMAIL
+                await _emailService.SendEmailAsync(
+                    leave.EmployeeEmail,
+                    "Leave Approved",
+                    $"Good news {leave.EmployeeName}, your leave has been APPROVED.",
+                    null
+                );
+
+                return "Leave approved and deducted";
             }
 
-            leave.Status = "Approved";
+            //  REJECT
+            else if (action == 2)
+            {
+                leave.Status = "Rejected";
+                leave.ActionDate = DateTime.Now;
+                await _repo.UpdateLeave(leave);
 
-            await _repo.UpdateBalance(balance);
-            await _repo.UpdateLeave(leave);
+                await _emailService.SendEmailAsync(
+                    leave.EmployeeEmail,
+                    "Leave Rejected",
+                    $"Hello {leave.EmployeeName}, your leave request has been REJECTED.",
+                    null
+                );
 
-            return "Leave approved and deducted";
-        }
+                return "Leave rejected";
+            }
 
-
-        public async Task<string> RejectLeave(int id, string approverEmail)
-        {
-            var leave = await _repo.GetById(id);
-
-            if (leave.ApproverEmail != approverEmail)
-                return "Not allowed";
-
-            leave.Status = "Rejected";
-
-            await _repo.UpdateLeave(leave);
-
-            return "Leave rejected";
+            return "Invalid action";
         }
 
         private async Task<User?> GetApprover(User user)
@@ -171,6 +201,52 @@ namespace LeaveApplicationBackend.Services
         private int CalculateLeaveDays(DateTime start, DateTime end)
         {
             return (end - start).Days + 1; // +1 includes same-day leave
+        }
+
+        private (DateTime start, DateTime end) GetCurrentWeek()
+        {
+            var today = DateTime.Today;
+
+            int diff = (7 + (today.DayOfWeek - DayOfWeek.Monday)) % 7;
+            var startOfWeek = today.AddDays(-diff).Date;
+            var endOfWeek = startOfWeek.AddDays(6);
+
+            return (startOfWeek, endOfWeek);
+        }
+        private string BuildWeeklyEmail(List<LeaveApplication> leaves, DateTime start, DateTime end)
+        {
+            if (!leaves.Any())
+                return $"No employees are on leave this week ({start:dd MMM} - {end:dd MMM}).";
+
+            var message = $"Employees on leave this week ({start:dd MMM} - {end:dd MMM}):\n\n";
+
+            foreach (var l in leaves)
+            {
+                message += $"- {l.EmployeeEmail} ({l.LeaveType}) from {l.StartDate:dd MMM} to {l.EndDate:dd MMM}\n";
+            }
+
+            return message;
+        }
+
+        public async Task SendWeeklyLeaveReport()
+        {
+            var (start, end) = GetCurrentWeek();
+
+            var leaves = await _repo.GetLeavesForWeek(start, end);
+
+            var emailBody = BuildWeeklyEmail(leaves, start, end);
+
+            var users = await _userRepo.GetAllUsers();
+
+            foreach (var user in users)
+            {
+                await _emailService.SendEmailAsync(
+                    user.Email,
+                    "Weekly Leave Report",
+                    emailBody,
+                    null
+                );
+            }
         }
     }
 }

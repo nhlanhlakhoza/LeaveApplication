@@ -1,14 +1,13 @@
-﻿using LeaveApplicationBackend.Models;
+﻿using LeaveApplicationBackend.DTO;
+using LeaveApplicationBackend.Models;
 
 namespace LeaveApplicationBackend.Services
 {
     public interface ILeaveService
     {
-        Task<string> ApplyLeave(string email, LeaveApplication leave);
+        Task<string> ApplyLeave(string email, ApplyLeaveDTO dto);
         Task<List<LeaveApplication>> GetAll();
-
-        Task<string>  ApproveLeave(int id, string approverEmail);
-        Task<string>  RejectLeave(int id, string approverEmail);
-       
+        Task<string> ProcessLeave(int id, string approverEmail, int action);
+        Task SendWeeklyLeaveReport();
     }
 }
