@@ -17,12 +17,12 @@
   
 
     <!-- Search and Filters -->
-    <div class="search-section">
+    <div-- class="search-section">
         <div class="search-bar">
             <i class="fas fa-search"></i>
             <input type="text" @bind="SearchTerm" @bind:event="oninput" placeholder="Search users by name, email, or role..." />
         </div>
-        <div class="filter-group">
+        <!--div class="filter-group">
             <select class="filter-select" @bind="RoleFilter">
                 <option value="">All Roles</option>
                 <option value="admin">Administrator</option>
@@ -34,7 +34,8 @@
                 <option value="active">Active</option>
                 <option value="inactive">Inactive</option>
             </select>
-        </div>
+        </div-->
+        <br />
     </div>
    
 
@@ -100,9 +101,9 @@
                 <h2><i class="fas fa-user"></i>Quick Actions</h2>
             </div>
             <div class="quick-actions-panel">
-                <button class="action-btn refresh" @onclick="RefreshData">
+                <!--button class="action-btn refresh" @onclick="RefreshData">
                     <i class="fas fa-sync-alt"></i> Refresh
-                </button>
+                </button-->
                 <button class="action-btn add" @onclick="OnAddNavigation">
                     <i class="fas fa-user-plus"></i> Add New
                 </button>

@@ -30,7 +30,7 @@ namespace LeaveApplicationBackend.Repositories
         {
             return await _context.Users.ToListAsync();
         }
-
+       
         public async Task Update(User user)
         {
             _context.Users.Update(user);
@@ -41,6 +41,30 @@ namespace LeaveApplicationBackend.Repositories
         {
             _context.Users.Remove(user);
             await _context.SaveChangesAsync();
+        }
+
+        public async Task<User?> GetSupervisorByTeam(string team)
+        {
+            return await _context.Users
+                .FirstOrDefaultAsync(u => u.Role == "Supervisor" && u.Team == team);
+        }
+
+        public async Task<User?> GetManager()
+        {
+            return await _context.Users
+                .FirstOrDefaultAsync(u => u.Role == "Manager");
+        }
+
+        public async Task<User?> GetGM()
+        {
+            return await _context.Users
+                .FirstOrDefaultAsync(u => u.Role == "GM");
+        }
+
+        public async Task<User?> GetDirector()
+        {
+            return await _context.Users
+                .FirstOrDefaultAsync(u => u.Role == "Director");
         }
     }
 }

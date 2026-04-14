@@ -23,6 +23,10 @@ namespace LeaveApplicationBackend.Models
 
         [Required]
         public string Department { get; set; }
+        [Required]
+        public string Team { get; set; } = "";
+        [Required]
+        public DateTime HireDate { get; set; }
 
     }
 }

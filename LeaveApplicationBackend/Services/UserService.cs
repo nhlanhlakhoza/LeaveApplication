@@ -22,10 +22,11 @@ namespace LeaveApplicationBackend.Services
 
         private readonly IUserRepository _repo;
         private readonly IConfiguration _config;
-        public UserService(IUserRepository repo)
+        private readonly ILeaveRepository _leaveRepo;
+        public UserService(IUserRepository repo, ILeaveRepository leaveRepo)
         {
             _repo = repo;
-
+            _leaveRepo = leaveRepo;
         }
        
         public async Task CreateUser(DTO.RegisterRequest request)
@@ -47,10 +48,24 @@ namespace LeaveApplicationBackend.Services
                 Status = "Active",
                 Position = request.Position,
                 Department = request.Department,
+                Team =request.Team,
+                HireDate=request.HireDate
+            };
+            //  CREATE LEAVE BALANCE AUTOMATICALLY
+            var balance = new LeaveBalance
+            {
+                EmployeeEmail = request.Email,
+                AnnualLeave = 0,
+                SickLeave = 10,
+                FamilyLeave = 5,
+                LastUpdated = DateTime.Now
             };
 
-            //  Save to database
+           
+
+            //  SAVE TO THE DATABASE
             _repo.Add(user);
+            await _leaveRepo.AddBalance(balance);
         }
 
         public Task<bool> UserExists(string email)
@@ -182,7 +197,7 @@ namespace LeaveApplicationBackend.Services
             user.Position = request.Position;
             user.Department = request.Department;
             user.Email = request.Email;
-
+            user.Team = request.Team;
             await _repo.Update(user);
 
             return true;
