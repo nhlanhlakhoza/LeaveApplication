@@ -20,5 +20,6 @@
         public DateTime? ActionDate { get; set; }
         public DateTime ApprovedDate { get; set; }
         public int NumberOfDays { get; set; }
+        public string? DocumentPath { get; set; }
     }
 }

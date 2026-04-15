@@ -10,11 +10,13 @@ namespace LeaveApplicationBackend.Services
         private readonly ILeaveRepository _repo;
         private readonly IUserRepository _userRepo;
         private readonly IEmailService _emailService;
-        public LeaveService(ILeaveRepository repo, IUserRepository userRepo, IEmailService emailService)
+        private readonly FileService _fileService;
+        public LeaveService(ILeaveRepository repo, IUserRepository userRepo, IEmailService emailService, FileService fileService)
         {
             _repo = repo;
             _userRepo = userRepo;
             _emailService = emailService;
+            _fileService = fileService;
         }
 
         public async Task<string> ApplyLeave(string email, ApplyLeaveDTO dto)
@@ -25,13 +27,13 @@ namespace LeaveApplicationBackend.Services
             if (user == null || balance == null)
                 return "User or balance not found";
 
-            //  CALCULATE DAYS
+            // CALCULATE DAYS
             int numberOfDays = CalculateLeaveDays(dto.StartDate, dto.EndDate);
 
             if (numberOfDays <= 0)
                 return "Invalid date range";
 
-            //  CHECK BALANCE
+            // CHECK BALANCE
             bool hasEnough = dto.LeaveType switch
             {
                 "Annual" => balance.AnnualLeave >= numberOfDays,
@@ -43,29 +45,49 @@ namespace LeaveApplicationBackend.Services
             if (!hasEnough)
                 return "Not enough leave balance";
 
-            //  FIND APPROVER
+            // FIND APPROVER
             var approver = await GetApprover(user);
 
             if (approver == null)
                 return "No approver found";
 
-            //  MAP DTO → MODEL
+            // STEP 1: CREATE LEAVE (NO FILE YET)
             var leave = new LeaveApplication
             {
                 EmployeeEmail = email,
-                EmployeeName=dto.EmployeeName,
+                EmployeeName = dto.EmployeeName,
                 LeaveType = dto.LeaveType,
                 StartDate = dto.StartDate,
                 EndDate = dto.EndDate,
                 NumberOfDays = numberOfDays,
                 Status = "Pending",
-                Reason= dto.Reason,
+                Reason = dto.Reason,
                 ApproverEmail = approver.Email
             };
 
+            // STEP 2: SAVE TO DB (GET ID)
             await _repo.AddLeave(leave);
 
-            //  EMAIL TO APPROVER
+            // STEP 3: SAVE FILE USING leave.Id
+            string? documentPath = null;
+
+            if (dto.LeaveType == "Sick" || dto.LeaveType == "Family")
+            {
+                if (dto.Document != null)
+                {
+                    documentPath = await _fileService.SaveFileToDesktop(
+                        dto.Document,
+                        leaveId: leave.Id,
+                        isPdf: true
+                    );
+                }
+            }
+
+            // STEP 4: UPDATE LEAVE WITH FILE PATH
+            leave.DocumentPath = documentPath;
+            await _repo.UpdateLeave(leave);
+
+            // EMAIL TO APPROVER
             await _emailService.SendEmailAsync(
                 approver.Email,
                 "New Leave Request",

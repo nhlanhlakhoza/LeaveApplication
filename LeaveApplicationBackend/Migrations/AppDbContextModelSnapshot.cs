@@ -43,6 +43,9 @@ namespace LeaveApplicationBackend.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("DocumentPath")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("EmployeeEmail")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");

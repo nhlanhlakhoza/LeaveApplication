@@ -22,22 +22,10 @@
     <EditForm Model="Leave" OnValidSubmit="ApplyLeave" class="row g-3">
         <DataAnnotationsValidator />
 
-        <!-- Email -->
-        <!--div class="col-12 col-md-4">
-            <label>Email</label>
-        </div-->
-    
             <InputText @bind-Value="Leave.Email" class="form-control" hidden />
-        
-
-        <!-- Employee Name -->
-        <!--div class="col-12 col-md-4">
-            <label>Employee Name</label>
-        </div-->
        
             <InputText @bind-Value="Leave.EmployeeName" class="form-control" hidden />
-        
-
+       
         <!-- Leave Type -->
         <div class="col-12 col-md-4">
             <label>Leave Type</label>
@@ -72,9 +60,6 @@
                        class="form-control"
                        @onchange="CalculateDays" />
         </div>
-
-       
-
         <!-- Reason -->
         <div class="col-12 col-md-4">
             <label>Reason</label>
@@ -82,7 +67,65 @@
         <div class="col-12 col-md-8">
             <InputTextArea @bind-Value="Leave.Reason" class="form-control" />
         </div>
+        @if (Leave.LeaveType == "Sick" || Leave.LeaveType == "Family")
+        {
+            <div class="col-12 col-md-4 d-flex align-items-center">
+                <label class="mb-0">
+                    <i class="bi bi-paperclip me-2"></i> Supporting Document
+                </label>
+            </div>
 
+            <div class="col-12 col-md-8">
+                <div class="input-group shadow-sm rounded">
+                    <span class="input-group-text bg-white">
+                        <i class="bi bi-cloud-arrow-up text-primary"></i>
+                    </span>
+
+                    <InputFile OnChange="HandleFileUpload" class="form-control" />
+                </div>
+
+                @* 
+              @if (uploadedFile != null)
+                {
+                    <div class="mt-3 p-3 border rounded bg-light">
+
+                        <!-- File Info -->
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="bi bi-file-earmark text-primary"></i>
+                                <strong>@uploadedFile.Name</strong>
+                            </div>
+
+                            <span class="badge bg-success">
+                                <i class="bi bi-check-circle me-1"></i> Uploaded
+                            </span>
+                        </div>
+
+                        <!-- Actions -->
+                        <div class="mt-2 d-flex gap-3">
+
+                            <!-- Preview Link -->
+                            @if (!string.IsNullOrEmpty(filePreviewUrl))
+                            {
+                                <a href="@filePreviewUrl" target="_blank" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-eye me-1"></i> Preview
+                                </a>
+                            }
+
+                            <!-- Optional Remove -->
+                            <button class="btn btn-sm btn-outline-danger" @onclick="RemoveFile">
+                                <i class="bi bi-trash me-1"></i> Remove
+                            </button>
+                        </div>
+                    </div>
+                }
+                *@
+                <small class="text-muted">
+                    Please note: A sick note is required for absences on a Monday or Friday, or for two consecutive sick days.
+                    Supporting documents are required for family leave.
+                </small>
+            </div>
+        }
         <!-- Buttons -->
         <div class="col-12 text-end mt-3">
             <button type="submit" class="btn btn save-btn px-4 py-2 me-3">Apply Leave</button>
@@ -124,10 +167,11 @@
     private string ErrorMessage = "";
     public string UserName { get; set; } = "";
     public string UserEmail { get; set; } = "";
-
     public string  lastName { get; set; } = "";
     public string Initials { get; set; } = "";
-
+    private string? imagePreviewUrl;
+    private string? filePreviewUrl;
+    private IBrowserFile? uploadedFile;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -170,7 +214,16 @@
             Console.WriteLine("JWT READ ERROR: " + ex.Message);
         }
     }
+    private void HandleFileUpload(InputFileChangeEventArgs e)
+    {
+        uploadedFile = e.File;
+    }
 
+    private void RemoveFile()
+    {
+        uploadedFile = null;
+        filePreviewUrl = null;
+    }
   
     private void CalculateDays()
     {
@@ -204,18 +257,62 @@
 
             PrepareDates();
 
-            var response = await Http.PostAsJsonAsync(
-    $"https://localhost:7043/api/Leave/apply?email={Leave.Email}",
-    Leave
-);
+            var content = new MultipartFormDataContent();
+
+            // TEXT FIELDS
+            content.Add(new StringContent(Leave.EmployeeName ?? ""), "EmployeeName");
+            content.Add(new StringContent(Leave.LeaveType ?? ""), "LeaveType");
+            content.Add(new StringContent(Leave.Reason ?? ""), "Reason");
+
+            content.Add(new StringContent(Leave.StartDate.ToString("yyyy-MM-dd")), "StartDate");
+            content.Add(new StringContent(Leave.EndDate.ToString("yyyy-MM-dd")), "EndDate");
+
+            // FILE (Sick + Family only)
+            if (uploadedFile != null &&
+                (Leave.LeaveType == "Sick" || Leave.LeaveType == "Family"))
+            {
+                var stream = uploadedFile.OpenReadStream(10 * 1024 * 1024);
+
+                var fileContent = new StreamContent(stream);
+                fileContent.Headers.ContentType =
+                    new System.Net.Http.Headers.MediaTypeHeaderValue(uploadedFile.ContentType);
+
+                content.Add(fileContent, "Document", uploadedFile.Name);
+            }
+
+            var response = await Http.PostAsync(
+                $"https://localhost:7043/api/Leave/apply?email={Leave.Email}",
+                content
+            );
 
             if (response.IsSuccessStatusCode)
             {
+                IsLoading = false;
                 SuccessMessage = "Leave applied successfully!";
                 ErrorMessage = "";
+                // KEEP EMAIL + EMPLOYEE NAME
+             var email = Leave.Email;
+                var name = Leave.EmployeeName;
+                // CLEAR FORM
+                // RESET FORM
+                Leave = new LeaveModel
+                {
+                    Email = email,
+                    EmployeeName = name,
+                    StartDate = DateTime.Today,
+                    EndDate = DateTime.Today
+                };
 
-                await Task.Delay(1500);
-                Navigation.NavigateTo("/dashboard");
+                uploadedFile = null;
+
+                CalculateDays();
+
+                StateHasChanged();
+
+                await Task.Delay(2000);
+
+                SuccessMessage = "";
+               
             }
             else
             {

@@ -16,9 +16,10 @@ namespace LeaveApplicationBackend.Controllers
             _service = service;
         }
 
-        
+
         [HttpPost("apply")]
-        public async Task<IActionResult> ApplyLeave([FromBody] ApplyLeaveDTO dto, string email)
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> ApplyLeave([FromForm] ApplyLeaveDTO dto, [FromQuery] string email)
         {
             var result = await _service.ApplyLeave(email, dto);
 

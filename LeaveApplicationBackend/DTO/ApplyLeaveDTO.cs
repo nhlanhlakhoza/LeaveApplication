@@ -9,5 +9,6 @@
         public int NumberOfDays { get; set; }
         public string Reason { get; set; } = "";
         public string EmployeeName { get; set; } = "";
+        public IFormFile? Document { get; set; }
     }
 }
