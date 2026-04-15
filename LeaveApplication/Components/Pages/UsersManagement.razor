@@ -4,8 +4,9 @@
 @inject HttpClient Http
 @using Radzen
 @inject NavigationManager Navigation
-
 @rendermode InteractiveServer
+
+
 <PageTitle>Users Management - Inspection Pro</PageTitle>
 
 <div class="users-container">
@@ -136,7 +137,7 @@
     <div class="loading-overlay">
         <div class="loading-spinner">
             <i class="fas fa-spinner fa-spin"></i>
-            <p>@LoadingMessage</p>
+            <p>Loading users, please wait...</p>
         </div>
     </div>
 }
@@ -236,31 +237,34 @@
         }
     }
 
-    protected override void OnInitialized()
-    {
-        LoadSampleData();
-        FilterUsers();
-    }
-
-    private void LoadSampleData()
+    protected override async Task OnInitializedAsync()
     {
         IsLoading = true;
         LoadingMessage = "Loading Users...";
-        StateHasChanged();
+
+        await InvokeAsync(StateHasChanged); // 🔥 FORCE UI UPDATE FIRST
+
+        await LoadSampleData();
+
+        FilterUsers();
+        IsLoading = false;
+    }
+    private async Task LoadSampleData()
+    {
         try
         {
-            Users = Http.GetFromJsonAsync<List<User>>(
+            var result = await Http.GetFromJsonAsync<List<User>>(
                 "https://localhost:7043/api/users/all"
-            ).GetAwaiter().GetResult();
+            );
+
+            Users = result ?? new List<User>();
         }
         catch (Exception ex)
         {
-            Console.WriteLine("Failed to load users: " + ex.Message);
+            Console.WriteLine(ex.Message);
+            Users = new List<User>();
         }
-        IsLoading = false;
-        StateHasChanged();
     }
-
     private void FilterUsers()
     {
         var filtered = Users.AsEnumerable();
@@ -285,7 +289,7 @@
         }
 
         FilteredUsers = filtered.ToList();
-        StateHasChanged();
+        
     }
 
     private string GetUserInitials(string firstName, string lastName)

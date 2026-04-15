@@ -1,0 +1,250 @@
+﻿@page "/applyLeave"
+@using Microsoft.AspNetCore.Components.Forms
+@inject HttpClient Http
+@inject NavigationManager Navigation
+@rendermode InteractiveServer
+@inject UserStateService UserStateService
+@using System.IdentityModel.Tokens.Jwt
+@using LeaveApplication.Components.Services
+@using Radzen.Blazor
+@using Radzen
+@inject IJSRuntime JS
+
+<PageTitle>Apply Leave</PageTitle>
+
+<div class="users-container">
+    <div class="page-header">
+        <h1><i class="fas fa-calendar-alt me-2"></i> Apply Leave</h1>
+    </div>
+</div>
+
+<div class="card-body p-4">
+    <EditForm Model="Leave" OnValidSubmit="ApplyLeave" class="row g-3">
+        <DataAnnotationsValidator />
+
+        <!-- Email -->
+        <!--div class="col-12 col-md-4">
+            <label>Email</label>
+        </div-->
+    
+            <InputText @bind-Value="Leave.Email" class="form-control" hidden />
+        
+
+        <!-- Employee Name -->
+        <!--div class="col-12 col-md-4">
+            <label>Employee Name</label>
+        </div-->
+       
+            <InputText @bind-Value="Leave.EmployeeName" class="form-control" hidden />
+        
+
+        <!-- Leave Type -->
+        <div class="col-12 col-md-4">
+            <label>Leave Type</label>
+        </div>
+        <div class="col-12 col-md-8">
+            <InputSelect @bind-Value="Leave.LeaveType"
+                         class="form-select"
+                         @onchange="CalculateDays">
+                <option value="">Select Leave Type</option>
+                <option value="Annual">Annual</option>
+                <option value="Sick">Sick</option>
+                <option value="Family">Family</option>
+            </InputSelect>
+        </div>
+
+        <!-- Start Date -->
+        <div class="col-12 col-md-4">
+            <label>Start Date</label>
+        </div>
+        <div class="col-12 col-md-8">
+            <InputDate @bind-Value="Leave.StartDate"
+                       class="form-control"
+                       @onchange="CalculateDays" />
+        </div>
+
+        <!-- End Date -->
+        <div class="col-12 col-md-4">
+            <label>End Date</label>
+        </div>
+        <div class="col-12 col-md-8">
+            <InputDate @bind-Value="Leave.EndDate"
+                       class="form-control"
+                       @onchange="CalculateDays" />
+        </div>
+
+       
+
+        <!-- Reason -->
+        <div class="col-12 col-md-4">
+            <label>Reason</label>
+        </div>
+        <div class="col-12 col-md-8">
+            <InputTextArea @bind-Value="Leave.Reason" class="form-control" />
+        </div>
+
+        <!-- Buttons -->
+        <div class="col-12 text-end mt-3">
+            <button type="submit" class="btn btn save-btn px-4 py-2 me-3">Apply Leave</button>
+            <button type="button" class="btn btn-outline-secondary px-5 py-2" @onclick="GoBack">Cancel</button>
+        </div>
+    </EditForm>
+</div>
+
+@if (!string.IsNullOrEmpty(SuccessMessage))
+{
+    <div class="alert alert-success text-center">@SuccessMessage</div>
+}
+
+@if (!string.IsNullOrEmpty(ErrorMessage))
+{
+    <div class="alert alert-danger text-center">@ErrorMessage</div>
+}
+
+@if (IsLoading)
+{
+    <div class="loading-overlay">
+        <div class="loading-spinner">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p>@LoadingMessage</p>
+        </div>
+    </div>
+}
+
+@code {
+
+    [Parameter]
+    public string Email { get; set; } = "";
+
+    private LeaveModel Leave = new();
+
+    private bool IsLoading = false;
+    private string LoadingMessage = "";
+    private string SuccessMessage = "";
+    private string ErrorMessage = "";
+    public string UserName { get; set; } = "";
+    public string UserEmail { get; set; } = "";
+
+    public string  lastName { get; set; } = "";
+    public string Initials { get; set; } = "";
+
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await LoadUserFromToken();
+        }
+    }
+
+    private async Task LoadUserFromToken()
+    {
+        try
+        {
+            var token = await JS.InvokeAsync<string>("localStorage.getItem", "authToken");
+            if (string.IsNullOrEmpty(token)) return;
+
+            var handler = new JwtSecurityTokenHandler();
+            var jwt = handler.ReadJwtToken(token);
+
+            UserName = jwt.Claims.FirstOrDefault(c => c.Type == "FullName")?.Value ?? "";
+            UserEmail = jwt.Claims.FirstOrDefault(c => c.Type == "Email")?.Value ?? "";
+            lastName=jwt.Claims.FirstOrDefault(c => c.Type == "lastName")?.Value ?? "";
+
+            Leave.Email = UserEmail;
+
+
+            if (!string.IsNullOrWhiteSpace(UserName)&& !string.IsNullOrWhiteSpace(lastName))
+            {
+                // Combine first letter of first part of UserName and first letter of lastName
+                var parts = UserName.Split(' ');
+                Initials = parts.Length >= 1
+                    ? $"{parts[0][0]}{lastName[0]}".ToUpper()
+                    : $"{lastName[0]}".ToUpper();
+            }
+            Leave.EmployeeName = UserName + " " + lastName;
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("JWT READ ERROR: " + ex.Message);
+        }
+    }
+
+  
+    private void CalculateDays()
+    {
+        ErrorMessage = "";
+
+        if (Leave.StartDate == default || Leave.EndDate == default)
+            return;
+
+        if (Leave.EndDate < Leave.StartDate)
+        {
+            Leave.NumberOfDays = 0;
+            ErrorMessage = "End date cannot be before start date";
+            return;
+        }
+
+        Leave.NumberOfDays = (Leave.EndDate - Leave.StartDate).Days + 1;
+    }
+
+    private void PrepareDates()
+    {
+        Leave.StartDate = Leave.StartDate.Date;
+        Leave.EndDate = Leave.EndDate.Date;
+    }
+
+    private async Task ApplyLeave()
+    {
+        try
+        {
+            IsLoading = true;
+            LoadingMessage = "Submitting leave...";
+
+            PrepareDates();
+
+            var response = await Http.PostAsJsonAsync(
+    $"https://localhost:7043/api/Leave/apply?email={Leave.Email}",
+    Leave
+);
+
+            if (response.IsSuccessStatusCode)
+            {
+                SuccessMessage = "Leave applied successfully!";
+                ErrorMessage = "";
+
+                await Task.Delay(1500);
+                Navigation.NavigateTo("/dashboard");
+            }
+            else
+            {
+                ErrorMessage = await response.Content.ReadAsStringAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = ex.Message;
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    private void GoBack()
+    {
+        Navigation.NavigateTo("/dashboard");
+    }
+
+    public class LeaveModel
+    {
+        public string Email { get; set; } = "";
+        public string EmployeeName { get; set; } = "";
+        public string LeaveType { get; set; } = "";
+        public DateTime StartDate { get; set; } = DateTime.Today;
+        public DateTime EndDate { get; set; } = DateTime.Today;
+        public int NumberOfDays { get; set; }
+        public string Reason { get; set; } = "";
+    }
+}

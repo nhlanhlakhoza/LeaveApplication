@@ -1,36 +1,31 @@
 ﻿@inject IJSRuntime JS
 @inject NavigationManager Navigation
+@using System.IdentityModel.Tokens.Jwt
 @using System.Linq
+@using LeaveApplication.Components.Services
 @using Radzen.Blazor
 @using Radzen
-@using System.Linq
+@inject UserStateService UserStateService
 @rendermode InteractiveServer
 
 <RadzenProfileMenu Style="background:transparent;">
     <Template>
         <div class="d-flex align-items-center cursor-pointer">
-            <!-- Initials -->
-            <div class="profile-icon">
-                KK
-            </div>
-
-            <!-- Full Name -->
+            <div class="profile-icon">@Initials</div>
             <div class="ms-2 d-flex flex-column">
-                <span class="profile-name" style="font-weight:550; font-size:12px">
-                    Knowledge Sithole
-                </span>
+                <span class="profile-name" style="font-weight:550; font-size:12px">@UserName @lastName</span>
             </div>
         </div>
     </Template>
 
     <ChildContent>
-
-        <!--RadzenProfileMenuItem Click="@NavigateToProfile">
+        <RadzenProfileMenuItem Click="@NavigateToProfile">
             <Template><i class="bi bi-person me-2"></i><span>My Profile</span></Template>
-        </!--RadzenProfileMenuItem-->
-        <!--RadzenProfileMenuItem Click="@NavigateToSettings">
+        </RadzenProfileMenuItem>
+
+        <RadzenProfileMenuItem Click="@NavigateToSettings">
             <Template><i class="bi bi-gear me-2"></i><span>Settings</span></Template>
-        </!--RadzenProfileMenuItem-->
+        </RadzenProfileMenuItem>
 
         <RadzenProfileMenuItem Click="@Logout">
             <Template><i class="bi bi-box-arrow-right me-2"></i><span>Logout</span></Template>
@@ -42,10 +37,53 @@
     public string UserName { get; set; } = "";
     public string UserEmail { get; set; } = "";
     public string UserRole { get; set; } = "";
-    public string lastName { get; set; } = "";
+    public string  lastName { get; set; } = "";
     public string Initials { get; set; } = "";
     public string UserId { get; set; } = "";
-   
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await LoadUserFromToken();
+        }
+    }
+
+    private async Task LoadUserFromToken()
+    {
+        try
+        {
+            var token = await JS.InvokeAsync<string>("localStorage.getItem", "authToken");
+            if (string.IsNullOrEmpty(token)) return;
+
+            var handler = new JwtSecurityTokenHandler();
+            var jwt = handler.ReadJwtToken(token);
+
+            UserName = jwt.Claims.FirstOrDefault(c => c.Type == "FullName")?.Value ?? "";
+            UserEmail = jwt.Claims.FirstOrDefault(c => c.Type == "Email")?.Value ?? "";
+            lastName=jwt.Claims.FirstOrDefault(c => c.Type == "lastName")?.Value ?? "";
+            UserRole = jwt.Claims.FirstOrDefault(c => c.Type == "Role")?.Value ?? "";
+            UserId = jwt.Claims.FirstOrDefault(c => c.Type == "UserId")?.Value ?? "";
+
+            //  STORE usrId IN USER STATE SERVICE
+            UserStateService.UserId = UserId;
+            UserStateService.UserRole = UserRole;
+            if (!string.IsNullOrWhiteSpace(UserName)&& !string.IsNullOrWhiteSpace(lastName))
+            {
+      // Combine first letter of first part of UserName and first letter of lastName
+    var parts = UserName.Split(' ');
+    Initials = parts.Length >= 1
+        ? $"{parts[0][0]}{lastName[0]}".ToUpper()
+        : $"{lastName[0]}".ToUpper();
+            }
+
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("JWT READ ERROR: " + ex.Message);
+        }
+    }
 
     private void NavigateToProfile() { }
     private void NavigateToSettings() { }

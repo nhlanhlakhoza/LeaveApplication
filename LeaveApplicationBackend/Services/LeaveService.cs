@@ -59,6 +59,7 @@ namespace LeaveApplicationBackend.Services
                 EndDate = dto.EndDate,
                 NumberOfDays = numberOfDays,
                 Status = "Pending",
+                Reason= dto.Reason,
                 ApproverEmail = approver.Email
             };
 
