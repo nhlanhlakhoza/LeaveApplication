@@ -30,7 +30,7 @@
     <div class="leave-history-panel">
 
         <div class="table-header">
-            <h2><i class="fas fa-list"></i> Leave Records</h2>
+            <h2><i class="fas fa-calendar-alt"></i> Leave Records</h2>
         </div>
 
         @if (IsLoading)
@@ -66,7 +66,7 @@
                             <td>@leave.numberOfDays</td>
                             <td>
                                 <span class="status-badge status-@leave.Status">
-                                    @leave.Status.ToUpper()
+                                    @leave.Status
                                 </span>
                             </td>
                         </tr>

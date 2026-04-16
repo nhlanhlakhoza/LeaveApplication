@@ -237,33 +237,40 @@
             FilterUsers();
         }
     }
-
-    protected override async Task OnInitializedAsync()
+    
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        IsLoading = true;
-        LoadingMessage = "Loading Users...";
-
-        await InvokeAsync(StateHasChanged); //  FORCE UI UPDATE FIRST
-
-        await LoadSampleData();
-
-        FilterUsers();
-        IsLoading = false;
+        if (firstRender)
+        {
+            await LoadSampleData();
+        }
     }
+    
     private async Task LoadSampleData()
     {
         try
         {
+            IsLoading = true;
+            LoadingMessage = "Loading Users...";
+            await InvokeAsync(StateHasChanged); 
+
             var result = await Http.GetFromJsonAsync<List<User>>(
                 "https://localhost:7043/api/users/all"
             );
 
             Users = result ?? new List<User>();
+
+            FilterUsers(); 
         }
         catch (Exception ex)
         {
             Console.WriteLine(ex.Message);
             Users = new List<User>();
+        }
+        finally
+        {
+            IsLoading = false;
+            await InvokeAsync(StateHasChanged); 
         }
     }
     private void FilterUsers()
