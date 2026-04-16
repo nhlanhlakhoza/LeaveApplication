@@ -11,6 +11,7 @@ namespace LeaveApplicationBackend.DTO
         public string Department { get; set; }
         public string Position { get; set; }
         public DateTime CreatedAt { get; set; }
+        public string Team { get; set; }
 
     }
 }

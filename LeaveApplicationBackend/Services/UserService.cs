@@ -144,7 +144,7 @@ namespace LeaveApplicationBackend.Services
 
         public async Task EditUser(DTO.RegisterRequest request)
         {
-            var user = await _repo.GetByEmailAsync(request.Email); // or GetById
+            var user = await _repo.GetByEmailAsync(request.Email); 
 
             if (user == null)
             {
@@ -157,6 +157,7 @@ namespace LeaveApplicationBackend.Services
             user.Role = request.Role;
             user.Position = request.Position;
             user.Department = request.Department;
+            user.Team = request.Team;
 
             // Save changes
             await _repo.Update(user);
@@ -179,7 +180,8 @@ namespace LeaveApplicationBackend.Services
                 Email = user.Email,
                 Role = user.Role,
                 Department = user.Department,
-                Position = user.Position
+                Position = user.Position,
+                Team =user.Team
             };
         }
 
