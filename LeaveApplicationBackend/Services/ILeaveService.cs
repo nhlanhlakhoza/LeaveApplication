@@ -9,5 +9,6 @@ namespace LeaveApplicationBackend.Services
         Task<List<LeaveApplication>> GetAll();
         Task<string> ProcessLeave(int id, string approverEmail, int action);
         Task SendWeeklyLeaveReport();
+        Task<List<LeaveApplication>> GetLeaveByEmail(string email);
     }
 }

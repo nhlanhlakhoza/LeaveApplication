@@ -243,7 +243,7 @@
         IsLoading = true;
         LoadingMessage = "Loading Users...";
 
-        await InvokeAsync(StateHasChanged); // 🔥 FORCE UI UPDATE FIRST
+        await InvokeAsync(StateHasChanged); //  FORCE UI UPDATE FIRST
 
         await LoadSampleData();
 

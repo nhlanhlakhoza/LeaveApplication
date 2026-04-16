@@ -77,6 +77,13 @@ namespace LeaveApplicationBackend.Repositories
                             l.EndDate >= start)
                 .ToListAsync();
         }
+
+        public async Task<List<LeaveApplication>> GetByEmailAsync(string email)
+        {
+            return await _context.LeaveApplications
+                .Where(u => u.EmployeeEmail == email)
+                .ToListAsync();
+        }
     }
 
  }
