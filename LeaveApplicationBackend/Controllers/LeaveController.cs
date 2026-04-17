@@ -60,5 +60,20 @@ namespace LeaveApplicationBackend.Controllers
 
             return Ok(leaves);
         }
+
+        
+        [HttpGet("approver/{email}")]
+        public async Task<ActionResult<List<LeaveApplication>>> GetApproveByEmail(string email)
+        {
+            if (string.IsNullOrWhiteSpace(email))
+                return BadRequest("Email is required.");
+
+            var leaves = await _service.GetLeaveByEmailApprove(email);
+
+            if (leaves == null || !leaves.Any())
+                return Ok(new List<LeaveApplication>());
+
+            return Ok(leaves);
+        }
     }
 }

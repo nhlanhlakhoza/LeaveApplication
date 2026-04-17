@@ -1,0 +1,237 @@
+﻿@page "/ApproveLeave"
+@inject IJSRuntime JSRuntime
+@inject HttpClient Http
+@inject NavigationManager Navigation
+@rendermode InteractiveServer
+@using System.IdentityModel.Tokens.Jwt
+
+<PageTitle>Leave History - Inspection Pro</PageTitle>
+
+<div class="users-container">
+
+    <!-- Page Header -->
+    <div class="page-header">
+        <h1><i class="fas fa-calendar-alt"></i> Leave Review  </h1>
+    </div>
+
+    <!-- Search Section -->
+    <div class="search-section">
+        <div class="search-bar">
+            <i class="fas fa-search"></i>
+            <input type="text" @bind="SearchTerm" @bind:event="oninput"
+                   placeholder="Search leave records..." />
+        </div>
+        <br />
+    </div>
+
+    <!-- Leave History Table -->
+    <div class="leave-history-panel">
+
+        <div class="table-header">
+            <h2><i class="fas fa-calendar-alt"></i> Leave Review </h2>
+        </div>
+
+        @if (IsLoading)
+        {
+          
+        }
+        else if (FilteredLeaves == null || !FilteredLeaves.Any())
+        {
+            <br />
+            <p>No leave records found.</p>
+        }
+        else
+        {
+            <table>
+                <thead>
+                    <tr>
+                        <th>Employee Name</th>
+                        <th>Employee Email</th>
+                        <th>Start Date</th>
+                        <th>End Date</th>
+                        <th>Type</th>
+                        <th>Number of days</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @foreach (var leave in PagedLeaves)
+                    {
+                        <tr @onclick="() => GoToLeaveDetails(leave.id)"
+                            class="@(SelectedLeave?.id == leave.id ? "selected-row" : "")"
+                            style="cursor:pointer;">
+                           
+                            <td>@leave.employeeName</td>
+                            <td>@leave.employeeEmail</td>
+                            <td>@FormatDate(leave.StartDate)</td>
+                            <td>@FormatDate(leave.EndDate)</td>
+                            <td>@leave.leaveType</td>
+                            <td>@leave.numberOfDays</td>
+                            <td>
+                                <span class="status-badge status-@leave.Status">
+                                    @leave.Status
+                                </span>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+
+    <!-- Pagination -->
+    <div class="pager-container">
+        <RadzenPager Count="@count"
+                     PageSize="@pageSize"
+                     PageNumbersCount="6"
+                     PageChanged="@PageChanged" />
+    </div>
+</div>
+
+<!-- Loading Overlay -->
+@if (IsLoading)
+{
+    <div class="loading-overlay">
+        <div class="loading-spinner">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p>Loading Pending leave ...</p>
+        </div>
+    </div>
+}
+
+@code {
+
+    private List<Leave> Leaves = new();
+    private List<Leave> FilteredLeaves = new();
+    Leave? SelectedLeave;
+    private bool IsLoading = false;
+    private string? userEmail;
+    private bool _loaded;
+    private string _searchTerm = "";
+    private int pageSize = 4;
+    private int pageIndex = 0;
+
+    private int count => FilteredLeaves.Count;
+
+    private IEnumerable<Leave> PagedLeaves =>
+        FilteredLeaves.Skip(pageIndex * pageSize).Take(pageSize);
+
+    void PageChanged(Radzen.PagerEventArgs args)
+    {
+        pageIndex = args.PageIndex;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && !_loaded)
+        {
+            _loaded = true;
+
+            await LoadUserFromToken();
+
+            if (!string.IsNullOrWhiteSpace(userEmail))
+            {
+                await LoadLeaveHistory();
+            }
+
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private async Task LoadUserFromToken()
+    {
+        try
+        {
+            var token = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "authToken");
+
+            if (string.IsNullOrEmpty(token)) return;
+
+            var handler = new JwtSecurityTokenHandler();
+            var jwt = handler.ReadJwtToken(token);
+
+            userEmail = jwt.Claims.FirstOrDefault(c => c.Type == "Email")?.Value ?? "";
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("JWT ERROR: " + ex.Message);
+        }
+    }
+
+    private async Task LoadLeaveHistory()
+    {
+        try
+        {
+            IsLoading = true;
+            await InvokeAsync(StateHasChanged);
+
+            var result = await Http.GetFromJsonAsync<List<Leave>>(
+                $"https://localhost:7043/api/leave/approver/{userEmail}"
+            );
+
+            Leaves = result ?? new List<Leave>();
+            FilterLeaves();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+            Leaves = new List<Leave>();
+        }
+        finally
+        {
+            IsLoading = false;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private void FilterLeaves()
+    {
+        if (string.IsNullOrWhiteSpace(_searchTerm))
+        {
+            FilteredLeaves = Leaves.ToList();
+        }
+        else
+        {
+            FilteredLeaves = Leaves.Where(l =>
+                (l.UserEmail ?? "").Contains(_searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                (l.leaveType ?? "").Contains(_searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                (l.Status ?? "").Contains(_searchTerm, StringComparison.OrdinalIgnoreCase)
+            ).ToList();
+        }
+
+        pageIndex = 0;
+    }
+
+    private string FormatDate(DateTime? date)
+    {
+        return date.HasValue ? date.Value.ToString("yyyy-MM-dd") : "-";
+    }
+
+    private string SearchTerm
+    {
+        get => _searchTerm;
+        set
+        {
+            _searchTerm = value;
+            FilterLeaves();
+        }
+    }
+
+    
+    private void GoToLeaveDetails(int id)
+    {
+        Navigation.NavigateTo($"/leave-details/{id}");
+    }
+    public class Leave
+    {
+        public DateTime? StartDate { get; set; }
+        public DateTime? EndDate { get; set; }
+        public string leaveType { get; set; } = "";
+        public string Status { get; set; } = "";
+        public string UserEmail { get; set; } = "";
+        public int numberOfDays { get; set; }
+        public string employeeEmail { get; set; } = "";
+        public string employeeName { get; set; } = "";
+        public int id { get; set; } 
+    }
+}

@@ -1,10 +1,8 @@
 ﻿@page "/leaveHistory"
-@using Microsoft.AspNetCore.Components.Forms
 @inject IJSRuntime JSRuntime
 @inject HttpClient Http
 @inject NavigationManager Navigation
 @rendermode InteractiveServer
-@inject IJSRuntime JSRuntime
 @using System.IdentityModel.Tokens.Jwt
 
 <PageTitle>Leave History - Inspection Pro</PageTitle>
@@ -20,7 +18,7 @@
     <div class="search-section">
         <div class="search-bar">
             <i class="fas fa-search"></i>
-            <input type="text" @bind="searchTerm" @bind:event="oninput"
+            <input type="text" @bind="SearchTerm" @bind:event="oninput"
                    placeholder="Search leave records..." />
         </div>
         <br />
@@ -35,7 +33,7 @@
 
         @if (IsLoading)
         {
-            
+            <p>Loading leave records...</p>
         }
         else if (FilteredLeaves == null || !FilteredLeaves.Any())
         {
@@ -59,7 +57,6 @@
                     @foreach (var leave in PagedLeaves)
                     {
                         <tr>
-                            
                             <td>@FormatDate(leave.StartDate)</td>
                             <td>@FormatDate(leave.EndDate)</td>
                             <td>@leave.leaveType</td>
@@ -74,8 +71,9 @@
                 </tbody>
             </table>
         }
-        
     </div>
+
+    <!-- Pagination -->
     <div class="pager-container">
         <RadzenPager Count="@count"
                      PageSize="@pageSize"
@@ -84,6 +82,7 @@
     </div>
 </div>
 
+<!-- Loading Overlay -->
 @if (IsLoading)
 {
     <div class="loading-overlay">
@@ -98,10 +97,11 @@
 
     private List<Leave> Leaves = new();
     private List<Leave> FilteredLeaves = new();
-  
+
     private bool IsLoading = false;
     private string? userEmail;
     private bool _loaded;
+
     private int pageSize = 4;
     private int pageIndex = 0;
 
@@ -117,11 +117,18 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender)
+        if (firstRender && !_loaded)
         {
+            _loaded = true;
+
             await LoadUserFromToken();
-            await LoadLeaveHistory(); // important: load data after token
-            StateHasChanged();
+
+            if (!string.IsNullOrWhiteSpace(userEmail))
+            {
+                await LoadLeaveHistory();
+            }
+
+            await InvokeAsync(StateHasChanged);
         }
     }
 
@@ -130,20 +137,17 @@
         try
         {
             var token = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "authToken");
+
             if (string.IsNullOrEmpty(token)) return;
 
             var handler = new JwtSecurityTokenHandler();
             var jwt = handler.ReadJwtToken(token);
 
-            
             userEmail = jwt.Claims.FirstOrDefault(c => c.Type == "Email")?.Value ?? "";
-            
-
-            StateHasChanged();
         }
         catch (Exception ex)
         {
-            Console.WriteLine("JWT READ ERROR: " + ex.Message);
+            Console.WriteLine("JWT ERROR: " + ex.Message);
         }
     }
 
@@ -175,20 +179,20 @@
 
     private void FilterLeaves()
     {
-        if (string.IsNullOrWhiteSpace(searchTerm))
+        if (string.IsNullOrWhiteSpace(_searchTerm))
         {
-            FilteredLeaves = Leaves;
+            FilteredLeaves = Leaves.ToList();
         }
         else
         {
             FilteredLeaves = Leaves.Where(l =>
-                l.UserEmail.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
-                l.leaveType.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
-                l.Status.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)
+                (l.UserEmail ?? "").Contains(_searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                (l.leaveType ?? "").Contains(_searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                (l.Status ?? "").Contains(_searchTerm, StringComparison.OrdinalIgnoreCase)
             ).ToList();
         }
 
-        pageIndex = 0; 
+        pageIndex = 0;
     }
 
     private string FormatDate(DateTime? date)
@@ -196,7 +200,7 @@
         return date.HasValue ? date.Value.ToString("yyyy-MM-dd") : "-";
     }
 
-    private string searchTerm
+    private string SearchTerm
     {
         get => _searchTerm;
         set
@@ -205,6 +209,7 @@
             FilterLeaves();
         }
     }
+
     private string _searchTerm = "";
 
     public class Leave

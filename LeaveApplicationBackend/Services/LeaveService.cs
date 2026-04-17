@@ -126,6 +126,16 @@ namespace LeaveApplicationBackend.Services
 
             return leaves ?? new List<LeaveApplication>();
         }
+
+        public async Task<List<LeaveApplication>> GetLeaveByEmailApprove(string email)
+        {
+            if (string.IsNullOrWhiteSpace(email))
+                return new List<LeaveApplication>();
+
+            var leaves = await _repo.GetByEmailApproval(email);
+
+            return leaves ?? new List<LeaveApplication>();
+        }
         public async Task<string> ProcessLeave(int id, string approverEmail, int action)
         {
             var leave = await _repo.GetById(id);
