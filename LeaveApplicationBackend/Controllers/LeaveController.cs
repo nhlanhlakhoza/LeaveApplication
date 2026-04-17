@@ -75,5 +75,16 @@ namespace LeaveApplicationBackend.Controllers
 
             return Ok(leaves);
         }
+
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetLeaveById(int id)
+        {
+            var leave = await _service.GetLeaveByIdAsync(id);
+
+            if (leave == null)
+                return NotFound();
+
+            return Ok(leave);
+        }
     }
 }

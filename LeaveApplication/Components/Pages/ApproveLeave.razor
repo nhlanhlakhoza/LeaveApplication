@@ -47,11 +47,8 @@
                     <tr>
                         <th>Employee Name</th>
                         <th>Employee Email</th>
-                        <th>Start Date</th>
-                        <th>End Date</th>
                         <th>Type</th>
                         <th>Number of days</th>
-                        <th>Status</th>
                     </tr>
                 </thead>
 
@@ -64,15 +61,9 @@
                            
                             <td>@leave.employeeName</td>
                             <td>@leave.employeeEmail</td>
-                            <td>@FormatDate(leave.StartDate)</td>
-                            <td>@FormatDate(leave.EndDate)</td>
                             <td>@leave.leaveType</td>
                             <td>@leave.numberOfDays</td>
-                            <td>
-                                <span class="status-badge status-@leave.Status">
-                                    @leave.Status
-                                </span>
-                            </td>
+                           
                         </tr>
                     }
                 </tbody>

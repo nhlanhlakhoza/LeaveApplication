@@ -91,6 +91,12 @@ namespace LeaveApplicationBackend.Repositories
                 .Where(u => u.ApproverEmail == email && u.Status == "Pending")
                 .ToListAsync();
         }
+
+        public async Task<LeaveApplication?> GetByIdAsync(int id)
+        {
+            return await _context.LeaveApplications
+                .FirstOrDefaultAsync(l => l.Id == id);
+        }
     }
 
  }

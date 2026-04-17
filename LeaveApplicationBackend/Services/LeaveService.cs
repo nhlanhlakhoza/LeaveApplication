@@ -289,5 +289,11 @@ namespace LeaveApplicationBackend.Services
                 );
             }
         }
+        public async Task<LeaveApplication?> GetLeaveByIdAsync(int id)
+        {
+            return await _repo.GetByIdAsync(id);
+        }
+
+
     }
 }

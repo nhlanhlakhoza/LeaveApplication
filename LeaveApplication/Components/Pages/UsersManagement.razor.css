@@ -363,7 +363,6 @@ input:checked + .slider {
 
 .btn {
     padding: 10px 20px;
-    border: none;
     border-radius: 5px;
     cursor: pointer;
     font-weight: 600;
@@ -595,13 +594,14 @@ input:checked + .slider {
     background: linear-gradient(135deg, #081f3f, #6f93b7);
     color: white;
     border: none;
-    padding: 8px 8px;
+    padding: 10px 8px;
     border-radius: 8px;
     cursor: pointer;
     align-items: center;
     gap: 8px;
     transition: background 0.3s;
     font-weight: 600;
+    min-width: 120px;
 }
 
 .delete-btn:hover {

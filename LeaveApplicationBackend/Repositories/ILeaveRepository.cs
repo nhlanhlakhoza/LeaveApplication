@@ -15,5 +15,6 @@ namespace LeaveApplicationBackend.Repositories
         Task<List<LeaveApplication>> GetLeavesForWeek(DateTime start, DateTime end);
         Task<List<LeaveApplication>> GetByEmailAsync(string email);
         Task<List<LeaveApplication>> GetByEmailApproval(string email);
+        Task<LeaveApplication?> GetByIdAsync(int id);
     }
 }
