@@ -21,5 +21,6 @@
         public DateTime ApprovedDate { get; set; }
         public int NumberOfDays { get; set; }
         public string? DocumentPath { get; set; }
+        public string RejectionReason { get; set; } = "";
     }
 }

@@ -136,7 +136,7 @@ namespace LeaveApplicationBackend.Services
 
             return leaves ?? new List<LeaveApplication>();
         }
-        public async Task<string> ProcessLeave(int id, string approverEmail, int action)
+        public async Task<string> ProcessLeave(int id, string approverEmail, int action, string rejectionReason)
         {
             var leave = await _repo.GetById(id);
 
@@ -191,12 +191,13 @@ namespace LeaveApplicationBackend.Services
             {
                 leave.Status = "Rejected";
                 leave.ActionDate = DateTime.Now;
+                leave.RejectionReason = rejectionReason;
                 await _repo.UpdateLeave(leave);
 
                 await _emailService.SendEmailAsync(
                     leave.EmployeeEmail,
                     "Leave Rejected",
-                    $"Hello {leave.EmployeeName}, your leave request has been REJECTED.",
+                    $"Hello {leave.EmployeeName}, your leave request has been REJECTED. Reason: {leave.RejectionReason}",
                     null
                 );
 

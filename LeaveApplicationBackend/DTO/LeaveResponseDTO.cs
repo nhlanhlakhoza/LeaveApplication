@@ -13,5 +13,7 @@
         public string Status { get; set; } = "";
 
         public string ApproverEmail { get; set; } = "";
+
+        public string RejectionReason { get; set; } = "";
     }
 }

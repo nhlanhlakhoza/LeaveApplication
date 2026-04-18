@@ -36,9 +36,9 @@ namespace LeaveApplicationBackend.Controllers
         }
 
         [HttpPut("process/{id}")]
-        public async Task<IActionResult> Process(int id, string approverEmail, int action)
+        public async Task<IActionResult> Process(int id, string approverEmail, int action, string rejectionReason)
         {
-            var result = await _service.ProcessLeave(id, approverEmail, action);
+            var result = await _service.ProcessLeave(id, approverEmail, action, rejectionReason);
 
             if (result.Contains("Not") || result.Contains("Invalid"))
                 return BadRequest(result);
