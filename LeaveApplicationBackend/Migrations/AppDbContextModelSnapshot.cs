@@ -100,10 +100,6 @@ namespace LeaveApplicationBackend.Migrations
                     b.Property<double>("AnnualLeave")
                         .HasColumnType("float");
 
-                    b.Property<string>("EmployeeEmail")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<double>("FamilyLeave")
                         .HasColumnType("float");
 
@@ -192,7 +188,8 @@ namespace LeaveApplicationBackend.Migrations
                 {
                     b.HasOne("LeaveApplicationBackend.Models.User", "User")
                         .WithOne("LeaveBalance")
-                        .HasForeignKey("LeaveApplicationBackend.Models.LeaveBalance", "UserId");
+                        .HasForeignKey("LeaveApplicationBackend.Models.LeaveBalance", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.Navigation("User");
                 });

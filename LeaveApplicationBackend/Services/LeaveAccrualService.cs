@@ -65,7 +65,7 @@ public class LeaveAccrualService : BackgroundService
 
         foreach (var user in users)
         {
-            var balance = await leaveRepo.GetBalance(user.Email);
+            var balance = await leaveRepo.GetBalanceByUserId(user.Id);
 
             if (balance == null)
                 continue;

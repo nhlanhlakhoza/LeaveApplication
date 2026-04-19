@@ -22,7 +22,8 @@ namespace LeaveApplicationBackend.Services
         public async Task<string> ApplyLeave(string email, ApplyLeaveDTO dto)
         {
             var user = await _userRepo.GetByEmailAsync(email);
-            var balance = await _repo.GetBalance(email);
+            var balance = await _repo.GetBalanceByUserId(user.Id);
+
 
             if (user == null || balance == null)
                 return "User or balance not found";
@@ -54,8 +55,7 @@ namespace LeaveApplicationBackend.Services
             // STEP 1: CREATE LEAVE (NO FILE YET)
             var leave = new LeaveApplication
             {
-                EmployeeEmail = email,
-                EmployeeName = dto.EmployeeName,
+                UserId = user.Id,
                 LeaveType = dto.LeaveType,
                 StartDate = dto.StartDate,
                 EndDate = dto.EndDate,
@@ -99,7 +99,7 @@ namespace LeaveApplicationBackend.Services
         }
         public async Task AccrueLeave(User user)
         {
-            var balance = await _repo.GetBalance(user.Email);
+            var balance = await _repo.GetBalanceByUserId(user.Id);
 
             if (balance == null)
                 return;
@@ -122,19 +122,24 @@ namespace LeaveApplicationBackend.Services
             if (string.IsNullOrWhiteSpace(email))
                 return new List<LeaveApplication>();
 
-            var leaves = await _repo.GetByEmailAsync(email);
+            var user = await _userRepo.GetByEmailAsync(email);
+
+            if (user == null)
+                return new List<LeaveApplication>();
+
+            var leaves = await _repo.GetByUserIdAsync(user.Id);
 
             return leaves ?? new List<LeaveApplication>();
         }
 
-        public async Task<List<LeaveApplication>> GetLeaveByEmailApprove(string email)
+        public async Task<List<LeaveApprovalDTO>> GetLeaveByEmailApprove(string email)
         {
             if (string.IsNullOrWhiteSpace(email))
-                return new List<LeaveApplication>();
+                return new List<LeaveApprovalDTO>();
 
             var leaves = await _repo.GetByEmailApproval(email);
 
-            return leaves ?? new List<LeaveApplication>();
+            return leaves ?? new List<LeaveApprovalDTO>();
         }
         public async Task<string> ProcessLeave(int id, string approverEmail, int action, string rejectionReason)
         {
@@ -145,11 +150,13 @@ namespace LeaveApplicationBackend.Services
 
             if (leave.ApproverEmail != approverEmail)
                 return "Not allowed";
-
+            if (leave == null)
+                return "Not found";
+            var user = await _userRepo.GetByIdAsync(leave.UserId);
             //  APPROVE
             if (action == 1)
             {
-                var balance = await _repo.GetBalance(leave.EmployeeEmail);
+                var balance = await _repo.GetBalanceByUserId(leave.UserId);
 
                 if (balance == null)
                     return "Balance not found";
@@ -172,14 +179,15 @@ namespace LeaveApplicationBackend.Services
 
                 leave.Status = "Approved";
                 leave.ActionDate = DateTime.Now;
+                leave.RejectionReason = "";
                 await _repo.UpdateBalance(balance);
                 await _repo.UpdateLeave(leave);
 
                 //  EMAIL
                 await _emailService.SendEmailAsync(
-                    leave.EmployeeEmail,
+                   user.Email,
                     "Leave Approved",
-                    $"Good news {leave.EmployeeName}, your leave has been APPROVED.",
+                    $"Good news {user.FullName}, your leave has been APPROVED.",
                     null
                 );
 
@@ -195,9 +203,9 @@ namespace LeaveApplicationBackend.Services
                 await _repo.UpdateLeave(leave);
 
                 await _emailService.SendEmailAsync(
-                    leave.EmployeeEmail,
+                    user.Email,
                     "Leave Rejected",
-                    $"Hello {leave.EmployeeName}, your leave request has been REJECTED. Reason: {leave.RejectionReason}",
+                    $"Hello {user.FullName}, your leave request has been REJECTED. Reason: {leave.RejectionReason}",
                     null
                 );
 
@@ -264,7 +272,7 @@ namespace LeaveApplicationBackend.Services
 
             foreach (var l in leaves)
             {
-                message += $"- {l.EmployeeEmail} ({l.LeaveType}) from {l.StartDate:dd MMM} to {l.EndDate:dd MMM}\n";
+                message += $"- {l.ApproverEmail} ({l.LeaveType}) from {l.StartDate:dd MMM} to {l.EndDate:dd MMM}\n";
             }
 
             return message;

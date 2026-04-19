@@ -238,8 +238,18 @@
     {
         SelectedAction = action;
 
-        //  IMPORTANT: toggle reject box
-        ShowReject = action == 2;
+        if (action == 2) // Reject
+        {
+            ShowReject = true;
+
+        }
+        else // Approve
+        {
+            ShowReject = false;
+
+
+
+        }
     }
     private bool IsSubmitDisabled =>
     SelectedAction == 0 ||
@@ -264,7 +274,13 @@
         try
         {
             IsLoading = true;
-            RejectionReason=RejectReason;
+
+            if (SelectedAction == 1)
+            {
+                RejectionReason="null";
+            }else if (SelectedAction ==2){
+                RejectionReason = RejectReason;
+            }
             var url =
                 $"https://localhost:7043/api/Leave/process/{id}" +
                 $"?approverEmail={ApproverEmail}&action={SelectedAction}&rejectionReason={RejectionReason}";

@@ -17,5 +17,6 @@ namespace LeaveApplicationBackend.Repositories
         Task<User?> GetGM();
         Task<User?> GetDirector();
         Task SaveChangesAsync();
+        Task<User?> GetByIdAsync(int id);    
     }
 }

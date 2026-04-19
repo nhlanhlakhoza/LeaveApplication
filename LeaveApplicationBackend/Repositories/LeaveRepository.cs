@@ -1,4 +1,5 @@
 ﻿using LeaveApplicationBackend.Data;
+using LeaveApplicationBackend.DTO;
 using LeaveApplicationBackend.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -35,25 +36,18 @@ namespace LeaveApplicationBackend.Repositories
             await _context.SaveChangesAsync();
         }
 
-        public async Task<LeaveBalance?> GetBalance(string email)
+        public async Task<LeaveBalance?> GetBalanceByUserId(int userId)
         {
-            //  Get user
-            var user = await _context.Users
-                .FirstOrDefaultAsync(x => x.Email == email);
-
-            if (user == null)
-                return null;
-
-            //  Get balance using FK
+           
             var balance = await _context.LeaveBalances
-                .FirstOrDefaultAsync(x => x.UserId == user.Id);
+                .FirstOrDefaultAsync(x => x.UserId == userId);
 
-            // AUTO CREATE IF NOT EXISTS
+            
             if (balance == null)
             {
                 balance = new LeaveBalance
                 {
-                    UserId = user.Id,   // FK
+                    UserId = userId,  
                     AnnualLeave = 0,
                     SickLeave = 10,
                     FamilyLeave = 5,
@@ -66,7 +60,7 @@ namespace LeaveApplicationBackend.Repositories
 
             return balance;
         }
-       
+
         public async Task UpdateBalance(LeaveBalance balance)
         {
             _context.LeaveBalances.Update(balance);
@@ -75,17 +69,12 @@ namespace LeaveApplicationBackend.Repositories
 
         public async Task AddBalance(LeaveBalance balance)
         {
-            //  check if user already has a balance
-            var existing = await _context.LeaveBalances
-                .FirstOrDefaultAsync(x => x.UserId == balance.UserId);
+            var exists = await _context.LeaveBalances
+                .AnyAsync(x => x.UserId == balance.UserId);
 
-            if (existing != null)
-            {
-                //  already exists → do NOT insert again
+            if (exists)
                 return;
-            }
 
-            
             _context.LeaveBalances.Add(balance);
             await _context.SaveChangesAsync();
         }
@@ -98,25 +87,36 @@ namespace LeaveApplicationBackend.Repositories
                 .ToListAsync();
         }
 
-        public async Task<List<LeaveApplication>> GetByEmailAsync(string email)
+
+        public async Task<List<LeaveApplication>> GetByUserIdAsync(int userId)
         {
             return await _context.LeaveApplications
-                .Where(u => u.EmployeeEmail == email)
+                .Where(u => u.UserId == userId)
                 .ToListAsync();
         }
-
-        public async Task<List<LeaveApplication>> GetByEmailApproval(string email)
+        public async Task<List<LeaveApprovalDTO>> GetByEmailApproval(string email)
         {
             return await _context.LeaveApplications
-                .Where(u => u.ApproverEmail == email && u.Status == "Pending")
+                .Where(l => l.ApproverEmail == email && l.Status == "Pending")
+                .Select(l => new LeaveApprovalDTO
+                {
+                    Id = l.Id,
+                    LeaveType = l.LeaveType,
+                    Status = l.Status,
+                    FullName = l.User.FullName,
+                    LastName = l.User.LastName,
+                    Email = l.User.Email,
+                    NumberOfDays = l.NumberOfDays,
+                })
                 .ToListAsync();
         }
-
         public async Task<LeaveApplication?> GetByIdAsync(int id)
         {
             return await _context.LeaveApplications
                 .FirstOrDefaultAsync(l => l.Id == id);
         }
+
+       
     }
 
  }

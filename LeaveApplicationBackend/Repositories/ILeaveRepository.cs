@@ -1,4 +1,5 @@
-﻿using LeaveApplicationBackend.Models;
+﻿using LeaveApplicationBackend.DTO;
+using LeaveApplicationBackend.Models;
 
 namespace LeaveApplicationBackend.Repositories
 {
@@ -9,12 +10,12 @@ namespace LeaveApplicationBackend.Repositories
         Task<List<LeaveApplication>> GetAll();
         Task UpdateLeave(LeaveApplication leave);
 
-        Task<LeaveBalance?> GetBalance(string email);
+        Task<LeaveBalance?> GetBalanceByUserId(int userId);
         Task UpdateBalance(LeaveBalance balance);
         Task AddBalance(LeaveBalance balance);
         Task<List<LeaveApplication>> GetLeavesForWeek(DateTime start, DateTime end);
-        Task<List<LeaveApplication>> GetByEmailAsync(string email);
-        Task<List<LeaveApplication>> GetByEmailApproval(string email);
+        Task<List<LeaveApplication>> GetByUserIdAsync(int userId);
+        Task<List<LeaveApprovalDTO>> GetByEmailApproval(string email);
         Task<LeaveApplication?> GetByIdAsync(int id);
     }
 }

@@ -11,7 +11,7 @@ namespace LeaveApplicationBackend.Services
         Task SendWeeklyLeaveReport();
         Task<List<LeaveApplication>> GetLeaveByEmail(string email);
 
-        Task<List<LeaveApplication>> GetLeaveByEmailApprove(string email);
+        Task<List<LeaveApprovalDTO>> GetLeaveByEmailApprove(string email);
         Task<LeaveApplication?> GetLeaveByIdAsync(int id);
     }
 }

@@ -52,21 +52,18 @@ namespace LeaveApplicationBackend.Services
                 HireDate=request.HireDate
             };
             //  SAVE USER TO THE DATABASE
-
             _repo.Add(user);
-            await _repo.SaveChangesAsync();
+            await _repo.SaveChangesAsync(); 
 
             //  CREATE LEAVE BALANCE AUTOMATICALLY
             var balance = new LeaveBalance
-            {
+            {   
                 UserId = user.Id,   
                 AnnualLeave = 0,
                 SickLeave = 10,
                 FamilyLeave = 5,
                 LastUpdated = DateTime.Now
             };
-
-           
 
             //  SAVE LEAVE BALANCE TO THE DATABASE
            

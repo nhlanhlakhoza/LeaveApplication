@@ -59,8 +59,8 @@
                             class="@(SelectedLeave?.id == leave.id ? "selected-row" : "")"
                             style="cursor:pointer;">
                            
-                            <td>@leave.employeeName</td>
-                            <td>@leave.employeeEmail</td>
+                            <td>@(leave.FullName + " " + leave.LastName)</td>
+                            <td>@leave.Email</td>
                             <td>@leave.leaveType</td>
                             <td>@leave.numberOfDays</td>
                            
@@ -221,8 +221,10 @@
         public string Status { get; set; } = "";
         public string UserEmail { get; set; } = "";
         public int numberOfDays { get; set; }
-        public string employeeEmail { get; set; } = "";
-        public string employeeName { get; set; } = "";
+        public string Email { get; set; } = "";
+        public string FullName { get; set; } = "";
+        public string LastName { get; set; } = "";
         public int id { get; set; } 
+       
     }
 }
