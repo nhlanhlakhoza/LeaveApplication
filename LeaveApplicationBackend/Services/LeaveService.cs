@@ -152,7 +152,11 @@ namespace LeaveApplicationBackend.Services
                 return "Not allowed";
             if (leave == null)
                 return "Not found";
+
             var user = await _userRepo.GetByIdAsync(leave.UserId);
+            if (user == null)
+                return "User not found";
+
             //  APPROVE
             if (action == 1)
             {
@@ -265,14 +269,18 @@ namespace LeaveApplicationBackend.Services
         }
         private string BuildWeeklyEmail(List<LeaveApplication> leaves, DateTime start, DateTime end)
         {
-            if (!leaves.Any())
+            if (leaves == null || !leaves.Any())
                 return $"No employees are on leave this week ({start:dd MMM} - {end:dd MMM}).";
 
             var message = $"Employees on leave this week ({start:dd MMM} - {end:dd MMM}):\n\n";
 
             foreach (var l in leaves)
             {
-                message += $"- {l.ApproverEmail} ({l.LeaveType}) from {l.StartDate:dd MMM} to {l.EndDate:dd MMM}\n";
+                var name = l.User?.FullName ?? "Unknown User";
+                var email = l.User?.Email ?? "No Email";
+
+                message += $"- {name} ({email}) " +
+                           $"({l.LeaveType}) from {l.StartDate:dd MMM} to {l.EndDate:dd MMM}\n";
             }
 
             return message;
