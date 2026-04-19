@@ -4,8 +4,9 @@
     {
         public int Id { get; set; }
 
-        public string EmployeeEmail { get; set; } = "";
-
+        public int? UserId { get; set; }
+        public User User { get; set; }
+       
         public double AnnualLeave { get; set; } = 0;    
         public double SickLeave { get; set; } = 10;      
         public double FamilyLeave { get; set; } = 5;     

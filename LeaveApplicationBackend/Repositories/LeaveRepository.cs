@@ -37,18 +37,27 @@ namespace LeaveApplicationBackend.Repositories
 
         public async Task<LeaveBalance?> GetBalance(string email)
         {
-            var balance = await _context.LeaveBalances
-                .FirstOrDefaultAsync(x => x.EmployeeEmail == email);
+            //  Get user
+            var user = await _context.Users
+                .FirstOrDefaultAsync(x => x.Email == email);
 
-            //  AUTO FIX IF MISSING
+            if (user == null)
+                return null;
+
+            //  Get balance using FK
+            var balance = await _context.LeaveBalances
+                .FirstOrDefaultAsync(x => x.UserId == user.Id);
+
+            // AUTO CREATE IF NOT EXISTS
             if (balance == null)
             {
                 balance = new LeaveBalance
                 {
-                    EmployeeEmail = email,
+                    UserId = user.Id,   // FK
                     AnnualLeave = 0,
                     SickLeave = 10,
-                    FamilyLeave = 5
+                    FamilyLeave = 5,
+                    LastUpdated = DateTime.Now
                 };
 
                 _context.LeaveBalances.Add(balance);
@@ -57,7 +66,7 @@ namespace LeaveApplicationBackend.Repositories
 
             return balance;
         }
-
+       
         public async Task UpdateBalance(LeaveBalance balance)
         {
             _context.LeaveBalances.Update(balance);
@@ -66,6 +75,17 @@ namespace LeaveApplicationBackend.Repositories
 
         public async Task AddBalance(LeaveBalance balance)
         {
+            //  check if user already has a balance
+            var existing = await _context.LeaveBalances
+                .FirstOrDefaultAsync(x => x.UserId == balance.UserId);
+
+            if (existing != null)
+            {
+                //  already exists → do NOT insert again
+                return;
+            }
+
+            
             _context.LeaveBalances.Add(balance);
             await _context.SaveChangesAsync();
         }

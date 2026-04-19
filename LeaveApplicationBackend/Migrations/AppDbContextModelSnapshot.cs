@@ -79,7 +79,12 @@ namespace LeaveApplicationBackend.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("LeaveApplications");
                 });
@@ -108,7 +113,14 @@ namespace LeaveApplicationBackend.Migrations
                     b.Property<double>("SickLeave")
                         .HasColumnType("float");
 
+                    b.Property<int?>("UserId")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("UserId")
+                        .IsUnique()
+                        .HasFilter("[UserId] IS NOT NULL");
 
                     b.ToTable("LeaveBalances");
                 });
@@ -163,6 +175,34 @@ namespace LeaveApplicationBackend.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("LeaveApplicationBackend.Models.LeaveApplication", b =>
+                {
+                    b.HasOne("LeaveApplicationBackend.Models.User", "User")
+                        .WithMany("LeaveApplications")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("LeaveApplicationBackend.Models.LeaveBalance", b =>
+                {
+                    b.HasOne("LeaveApplicationBackend.Models.User", "User")
+                        .WithOne("LeaveBalance")
+                        .HasForeignKey("LeaveApplicationBackend.Models.LeaveBalance", "UserId");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("LeaveApplicationBackend.Models.User", b =>
+                {
+                    b.Navigation("LeaveApplications");
+
+                    b.Navigation("LeaveBalance")
+                        .IsRequired();
                 });
 #pragma warning restore 612, 618
         }

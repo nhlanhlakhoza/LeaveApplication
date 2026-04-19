@@ -66,5 +66,10 @@ namespace LeaveApplicationBackend.Repositories
             return await _context.Users
                 .FirstOrDefaultAsync(u => u.Role == "Director");
         }
+
+        public async Task SaveChangesAsync()
+        {
+            await _context.SaveChangesAsync();
+        }
     }
 }

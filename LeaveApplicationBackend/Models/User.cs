@@ -19,7 +19,7 @@ namespace LeaveApplicationBackend.Models
         [Required]
         public string Status { get; set; }
         [Required]
-        public string Position {  get; set; }
+        public string Position { get; set; }
 
         [Required]
         public string Department { get; set; }
@@ -28,5 +28,7 @@ namespace LeaveApplicationBackend.Models
         [Required]
         public DateTime HireDate { get; set; }
 
+        public List<LeaveApplication> LeaveApplications { get; set; }
+        public LeaveBalance LeaveBalance { get; set; }
     }
 }

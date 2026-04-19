@@ -16,6 +16,6 @@ namespace LeaveApplicationBackend.Repositories
         Task<User?> GetManager();
         Task<User?> GetGM();
         Task<User?> GetDirector();
-       
+        Task SaveChangesAsync();
     }
 }
