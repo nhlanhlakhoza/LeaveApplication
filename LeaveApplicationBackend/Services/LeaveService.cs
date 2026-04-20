@@ -117,19 +117,17 @@ namespace LeaveApplicationBackend.Services
         {
             return await _repo.GetAll();
         }
-        public async Task<List<LeaveApplication>> GetLeaveByEmail(string email)
+        public async Task<List<LeaveDTO>> GetLeaveByEmail(string email)
         {
             if (string.IsNullOrWhiteSpace(email))
-                return new List<LeaveApplication>();
+                return new List<LeaveDTO>();
 
             var user = await _userRepo.GetByEmailAsync(email);
 
             if (user == null)
-                return new List<LeaveApplication>();
+                return new List<LeaveDTO>();
 
-            var leaves = await _repo.GetByUserIdAsync(user.Id);
-
-            return leaves ?? new List<LeaveApplication>();
+            return await _repo.GetLeaveByUserId(user.Id);       
         }
 
         public async Task<List<LeaveApprovalDTO>> GetLeaveByEmailApprove(string email)

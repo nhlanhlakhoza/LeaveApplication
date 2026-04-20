@@ -14,8 +14,8 @@ namespace LeaveApplicationBackend.Repositories
         Task UpdateBalance(LeaveBalance balance);
         Task AddBalance(LeaveBalance balance);
         Task<List<LeaveApplication>> GetLeavesForWeek(DateTime start, DateTime end);
-        Task<List<LeaveApplication>> GetByUserIdAsync(int userId);
         Task<List<LeaveApprovalDTO>> GetByEmailApproval(string email);
         Task<LeaveApplication?> GetByIdAsync(int id);
+        Task<List<LeaveDTO>> GetLeaveByUserId(int userId);
     }
 }
