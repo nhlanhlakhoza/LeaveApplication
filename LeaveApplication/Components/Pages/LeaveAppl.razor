@@ -128,7 +128,7 @@
         }
         <!-- Buttons -->
         <div class="col-12 text-end mt-3">
-            <button type="submit" class="btn btn save-btn px-4 py-2 me-3">Apply Leave</button>
+            <button type="submit" class="btn btn save-btn px-4 py-2 me-3" disabled="@(!CanSubmit())">Apply Leave</button>
             <button type="button" class="btn btn-outline-secondary px-5 py-2" @onclick="GoBack">Cancel</button>
         </div>
     </EditForm>
@@ -247,7 +247,43 @@
         Leave.StartDate = Leave.StartDate.Date;
         Leave.EndDate = Leave.EndDate.Date;
     }
+private bool CanSubmit()
+{
+    if (string.IsNullOrWhiteSpace(Leave.LeaveType))
+        return false;
 
+    if (Leave.StartDate == default || Leave.EndDate == default)
+        return false;
+
+    if (Leave.EndDate < Leave.StartDate)
+        return false;
+
+    if (string.IsNullOrWhiteSpace(Leave.Reason))
+        return false;
+
+    //  FAMILY LEAVE → ALWAYS REQUIRE DOCUMENT
+    if (Leave.LeaveType == "Family" && uploadedFile == null)
+        return false;
+
+    //  SICK LEAVE RULES
+    if (Leave.LeaveType == "Sick")
+    {
+        bool isMondayOrFriday =
+            Leave.StartDate.DayOfWeek == DayOfWeek.Monday ||
+            Leave.StartDate.DayOfWeek == DayOfWeek.Friday ||
+            Leave.EndDate.DayOfWeek == DayOfWeek.Monday ||
+            Leave.EndDate.DayOfWeek == DayOfWeek.Friday;
+
+        int days = (Leave.EndDate - Leave.StartDate).Days + 1;
+
+        bool isTwoOrMoreDays = days >= 2;
+
+        if ((isMondayOrFriday || isTwoOrMoreDays) && uploadedFile == null)
+            return false;
+    }
+
+    return true;
+}
     private async Task ApplyLeave()
     {
         try

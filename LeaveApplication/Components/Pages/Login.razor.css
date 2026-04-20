@@ -235,3 +235,89 @@ button {
         color:#6f93b7;
         margin-bottom: 10px;
     }
+
+
+
+.login-background {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh !important;
+    background: linear-gradient(rgba(8, 31, 63, 0.75), rgba(111, 147, 183, 0.7)), url("https://images.unsplash.com/photo-1522071820081-009f0129c71c?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80");
+    background-size: cover !important;
+    background-position: center !important;
+    position: relative;
+    width: 100% !important;
+}
+
+
+.login-card {
+    max-width: 400px;
+    width: 100%;
+    z-index: 1;
+    position: relative;
+}
+
+
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.3);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.spinner-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: white;
+}
+
+.spinner-text {
+    margin-top: 10px;
+    font-size: 1.2rem;
+}
+
+.transparent-card {
+    background: rgba(0, 0, 0, 0.10);
+    border: none !important;
+    color: white !important;
+    backdrop-filter: blur(8px); /* optional glass effect */
+}
+
+.btn-custom {
+    background-color: #031020 !important;
+    color: white !important;
+    border: none !important;
+    width: 100% !important;
+}
+
+    .btn-custom:hover {
+        background-color: #0d1e33 !important;
+    }
+
+
+
+.centered-notification {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 2000;
+}
+
+.notification-box {
+    background-color: rgba(220,53,69,0.95); /* red */
+    color: white;
+    padding: 15px 25px;
+    border-radius: 6px;
+    font-weight: bold;
+    text-align: center;
+    box-shadow: 0 0 10px rgba(0,0,0,0.5);
+}
