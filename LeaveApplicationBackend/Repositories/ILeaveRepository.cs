@@ -17,5 +17,7 @@ namespace LeaveApplicationBackend.Repositories
         Task<List<LeaveApprovalDTO>> GetByEmailApproval(string email);
         Task<LeaveApplication?> GetByIdAsync(int id);
         Task<List<LeaveDTO>> GetLeaveByUserId(int userId);
+        List<leaveTypeDTO> GetLeavesByEmail(string email);
+        LeaveBalance GetLeaveBalanceByEmail(string email);
     }
 }

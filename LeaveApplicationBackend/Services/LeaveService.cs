@@ -309,6 +309,16 @@ namespace LeaveApplicationBackend.Services
             return await _repo.GetByIdAsync(id);
         }
 
+        public LeaveSummaryDto GetLeaveTotalsByEmail(string email)
+        {
+            var balance = _repo.GetLeaveBalanceByEmail(email);
 
+            return new LeaveSummaryDto
+            {
+                AnnualLeaveDays = Convert.ToInt32(balance.AnnualLeave),
+                SickLeaveDays = Convert.ToInt32(balance.SickLeave),
+                FamilyLeaveDays = Convert.ToInt32(balance.FamilyLeave)
+            };
+        }
     }
 }

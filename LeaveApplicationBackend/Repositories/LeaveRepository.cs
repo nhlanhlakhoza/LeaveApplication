@@ -92,7 +92,8 @@ namespace LeaveApplicationBackend.Repositories
         public async Task<List<LeaveDTO>> GetLeaveByUserId(int userId)
         {
             return await _context.LeaveApplications
-                .Where(l => l.UserId == userId)
+                .Where(l => l.UserId == userId )
+                .OrderByDescending(l => l.StartDate)
                 .Select(l => new LeaveDTO
                 {
                     Id = l.Id,
@@ -127,8 +128,25 @@ namespace LeaveApplicationBackend.Repositories
             return await _context.LeaveApplications
                 .FirstOrDefaultAsync(l => l.Id == id);
         }
-
-       
+        public List<leaveTypeDTO> GetLeavesByEmail(string email)
+        {
+            return _context.LeaveBalances
+                .Where(l => l.User.Email == email)
+                .Select(l => new leaveTypeDTO
+                {
+                    Id = l.Id,
+                    AnnualLeave = l.AnnualLeave,
+                    SickLeave = l.SickLeave,
+                    FamilyLeave = l.FamilyLeave,
+                    Email = l.User.Email
+                })
+                .ToList();
+        }
+        public LeaveBalance GetLeaveBalanceByEmail(string email)
+        {
+            return _context.LeaveBalances
+                .FirstOrDefault(l => l.User.Email == email);
+        }
     }
 
  }

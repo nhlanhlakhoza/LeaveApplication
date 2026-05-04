@@ -46,7 +46,7 @@ namespace LeaveApplicationBackend.Controllers
             return Ok(result);
         }
 
-        // GET: api/leave/by-user/{email}
+       
         [HttpGet("by-user/{email}")]
         public async Task<ActionResult<List<LeaveApplication>>> GetLeaveByEmail(string email)
         {
@@ -85,6 +85,19 @@ namespace LeaveApplicationBackend.Controllers
                 return NotFound();
 
             return Ok(leave);
+        }
+
+        [HttpGet("totals/{email}")]
+        public IActionResult GetLeaveTotals(string email)
+        {
+            if (string.IsNullOrEmpty(email))
+            {
+                return BadRequest("Email is required");
+            }
+
+            var result = _service.GetLeaveTotalsByEmail(email);
+
+            return Ok(result);
         }
     }
 }

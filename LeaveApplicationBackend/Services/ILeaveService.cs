@@ -13,5 +13,6 @@ namespace LeaveApplicationBackend.Services
 
         Task<List<LeaveApprovalDTO>> GetLeaveByEmailApprove(string email);
         Task<LeaveApplication?> GetLeaveByIdAsync(int id);
+        LeaveSummaryDto GetLeaveTotalsByEmail(string email);
     }
 }

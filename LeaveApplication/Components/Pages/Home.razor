@@ -1,7 +1,233 @@
-﻿@page "/"
+﻿@page "/dashboard"
+@inject IJSRuntime JSRuntime
+@inject HttpClient Http
+@using Radzen
+@rendermode InteractiveServer
+<PageTitle>Dashboard - Leave Application</PageTitle>
 
-<PageTitle>Home</PageTitle>
+<div class="dashboard-container">
+    <!-- Header -->
+    <div class="dashboard-header">
+        <h1><i class="fas bi-house-door"></i> Dashboard</h1>
+    </div>
 
-<h1>Hello, world!</h1>
+    <!-- Summary Cards -->
+    <div class="summary-cards">
+        <div class="summary-card missing">
+            <div class="card-icon">
+                <i class="fas fa-briefcase-medical"></i>
+            </div>
+            <div class="card-content">
+                <h3>@OverdueCount</h3>
+                <p>Sick leave</p>
+            </div>
+        </div>
 
-Welcome to your new app.
+        <div class="summary-card pending">
+            <div class="card-icon">
+                <i class="fas fa-suitcase-rolling"></i>
+            </div>
+            <div class="card-content">
+                <h3>@PendingCount</h3>
+                <p>Annual leave</p>
+            </div>
+        </div>
+
+        <div class="summary-card completed">
+            <div class="card-icon">
+                <i class="fas fas fa-users"></i>
+            </div>
+            <div class="card-content">
+                <h3>@CompletedCount</h3>
+                <p>Family leave</p>
+            </div>
+        </div>
+
+   
+    </div>
+
+    <!-- Content -->
+    <div class="dashboard-content">
+
+        <!-- Recent Tasks -->
+        <div class="tasks-section">
+            <div class="section-header">
+                <h2><i class="fas fa-list-ul"></i> Recent Tickets</h2>
+                <div class="filters">
+                   <button class="filter-btn @(ActiveFilter == "all" ? "active" : "")" @onclick='() => SetFilter("all")'>All</button>
+<button class="filter-btn @(ActiveFilter == "missing" ? "active" : "")" @onclick='() => SetFilter("missing")'>Missing</button>
+<button class="filter-btn @(ActiveFilter == "pending" ? "active" : "")" @onclick='() => SetFilter("pending")'>Pending</button>
+<button class="filter-btn @(ActiveFilter == "in-progress" ? "active" : "")" @onclick='() => SetFilter("in-progress")'>In Progress</button>
+
+                </div>
+            </div>
+
+            <div class="tasks-container">
+                @foreach (var task in FilteredTasks)
+                {
+                    <div class="task-item">
+                        <div class="task-info">
+                            <div class="task-title">
+                                <span>
+<strong>@task.Title</strong> - <span class="task-description">@task.description</span>
+</span>
+                                <span class="priority @task.Priority.ToLower()">@task.Priority</span>
+                            </div>
+                            <div class="task-meta">
+                                <span><i class="far fa-calendar"></i> @task.DueDate.ToString("dd MMM yyyy")</span>
+                                <span><i class="fas fa-user"></i> @task.AssignedTo</span>
+                            </div>
+                        </div>
+                        <div class="status @task.Status.Replace(" ", "-").ToLower()">@task.Status</div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Inspectors -->
+        <div class="inspectors-section">
+            <div class="section-header">
+                <h2><i class="fas fa-users"></i> Inspector Team</h2>
+            </div>
+
+            <div class="inspectors-container">
+                @foreach (var inspector in PagedInspectors)
+                {
+                    <div class="inspector-card">
+                        <div class="inspector-avatar">@inspector.Avatar</div>
+                        <div class="inspector-details">
+                            <div class="inspector-name">@inspector.fullName</div>
+                            <div class="inspector-stats">
+                                <div><i class="fas fa-tasks"></i> @inspector.AssignedCount Assigned</div>
+                                <div>
+                                    <i class="@GetStatIcon(inspector.StatType)"></i>
+                                    @inspector.StatCount @inspector.StatType
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+               
+               
+
+               
+            </div>
+            <!-- Paginator -->
+            <RadzenPager Count="@TotalInspectors"
+                         PageSize="@pageSize"
+                         @bind-PageIndex="@pageIndex"
+                         PageNumbersCount="6"
+                         Style="margin-top:20px; display:flex; justify-content:center;" />
+
+
+        </div>
+        
+    </div>
+</div>
+
+@code {
+    private string ActiveFilter = "all";
+
+    private List<TaskItem> alTasks = new();     // ALL tasks 
+    private List<TaskItem> Tasks = new();       // TOP 5 
+    private List<TaskItem> FilteredTasks = new();
+    private List<Inspector> Inspectors = new();
+
+    private int PendingCount;
+    private int CompletedCount;
+    private int SubmittedCount;
+    private int OverdueCount;
+
+
+    private int pageSize = 4;
+    private int pageIndex = 0;
+
+    private int TotalInspectors => Inspectors.Count;
+  
+    private IEnumerable<Inspector> PagedInspectors =>
+     Inspectors
+         .Skip(pageIndex * pageSize)
+         .Take(pageSize);
+
+    protected override async Task OnInitializedAsync()
+    {
+       
+        CalculateCounts();
+         await LoadInspectors();
+        FilterTasks();
+    }
+   
+
+    
+    private void CalculateCounts()
+    {
+        PendingCount = alTasks.Count(t =>
+            t.Status.Equals("pending", StringComparison.OrdinalIgnoreCase));
+
+        CompletedCount = alTasks.Count(t =>
+            t.Status.Equals("approved", StringComparison.OrdinalIgnoreCase) ||
+            t.Status.Equals("completed", StringComparison.OrdinalIgnoreCase));
+
+        SubmittedCount = alTasks.Count(t =>
+            t.Status.Equals("submitted", StringComparison.OrdinalIgnoreCase));
+
+        OverdueCount = alTasks.Count(t =>
+            t.DueDate < DateTime.UtcNow &&
+            !t.Status.Equals("completed", StringComparison.OrdinalIgnoreCase));
+    }
+
+    private void SetFilter(string filter)
+    {
+        ActiveFilter = filter;
+        FilterTasks();
+    }
+      private async Task LoadInspectors()
+    {
+        try
+        {
+            Inspectors = await Http.GetFromJsonAsync<List<Inspector>>("https://localhost:7272/api/users/inspectors") ?? new();
+            pageIndex = 0; 
+        }
+        catch
+        {
+            Inspectors = new();
+        }
+    }
+    private void FilterTasks()
+    {
+        FilteredTasks = ActiveFilter == "all"
+            ? Tasks.ToList()
+            : Tasks.Where(t =>
+                t.Status.Equals(ActiveFilter, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+    }
+
+    private string GetStatIcon(string statType) => statType.ToLower() switch
+    {
+        "missing" => "fas fa-exclamation-circle",
+        "in progress" => "fas fa-sync-alt",
+        "pending" => "fas fa-clock",
+        "completed" => "fas fa-check-circle",
+        _ => "fas fa-tasks"
+    };
+
+    public class TaskItem
+    {
+        public string Title { get; set; } = "";
+        public string Priority { get; set; } = "";
+        public DateTime DueDate { get; set; }
+        public string AssignedTo { get; set; } = "";
+        public string Status { get; set; } = "";
+        public DateTime CreatedAt { get; set; }
+        public string description  {get; set; } = "";
+    }
+
+    public class Inspector
+    {
+        public string Avatar { get; set; } = "";
+        public string fullName { get; set; } = "";
+        public int AssignedCount { get; set; }
+        public string StatType { get; set; } = "";
+        public int StatCount { get; set; }
+    }
+}
