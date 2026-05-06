@@ -1,8 +1,13 @@
 ﻿@page "/dashboard"
 @inject IJSRuntime JSRuntime
 @inject HttpClient Http
+@using LeaveApplication.Components.Services
 @using Radzen
 @rendermode InteractiveServer
+@inject UserStateService UserStateService
+@using System.IdentityModel.Tokens.Jwt
+@inject IJSRuntime JS
+
 <PageTitle>Dashboard - Leave Application</PageTitle>
 
 <div class="dashboard-container">
@@ -18,7 +23,7 @@
                 <i class="fas fa-briefcase-medical"></i>
             </div>
             <div class="card-content">
-                <h3>@OverdueCount</h3>
+                <h3>@LeaveData?.SickLeaveDays</h3>
                 <p>Sick leave</p>
             </div>
         </div>
@@ -28,7 +33,7 @@
                 <i class="fas fa-suitcase-rolling"></i>
             </div>
             <div class="card-content">
-                <h3>@PendingCount</h3>
+                <h3>@LeaveData?.AnnualLeaveDays</h3>
                 <p>Annual leave</p>
             </div>
         </div>
@@ -38,7 +43,7 @@
                 <i class="fas fas fa-users"></i>
             </div>
             <div class="card-content">
-                <h3>@CompletedCount</h3>
+                <h3> @LeaveData?.FamilyLeaveDays</h3>
                 <p>Family leave</p>
             </div>
         </div>
@@ -126,6 +131,7 @@
 </div>
 
 @code {
+   
     private string ActiveFilter = "all";
 
     private List<TaskItem> alTasks = new();     // ALL tasks 
@@ -137,55 +143,86 @@
     private int CompletedCount;
     private int SubmittedCount;
     private int OverdueCount;
-
-
+    private string UserEmail = "";
+    private LeaveSummaryDto LeaveData;
     private int pageSize = 4;
     private int pageIndex = 0;
-
+    public string Email { get; set; } = "";
     private int TotalInspectors => Inspectors.Count;
-  
+ 
     private IEnumerable<Inspector> PagedInspectors =>
      Inspectors
          .Skip(pageIndex * pageSize)
          .Take(pageSize);
 
-    protected override async Task OnInitializedAsync()
-    {
-       
-        CalculateCounts();
-         await LoadInspectors();
-        FilterTasks();
-    }
-   
-
     
-    private void CalculateCounts()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        PendingCount = alTasks.Count(t =>
-            t.Status.Equals("pending", StringComparison.OrdinalIgnoreCase));
+        if (firstRender)
+        {
+            await LoadUserFromToken();
 
-        CompletedCount = alTasks.Count(t =>
-            t.Status.Equals("approved", StringComparison.OrdinalIgnoreCase) ||
-            t.Status.Equals("completed", StringComparison.OrdinalIgnoreCase));
+      
+            if (!string.IsNullOrEmpty(UserEmail))
+            {
+                await LoadLeave();    
+               
+              
+            }
 
-        SubmittedCount = alTasks.Count(t =>
-            t.Status.Equals("submitted", StringComparison.OrdinalIgnoreCase));
-
-        OverdueCount = alTasks.Count(t =>
-            t.DueDate < DateTime.UtcNow &&
-            !t.Status.Equals("completed", StringComparison.OrdinalIgnoreCase));
+            await InvokeAsync(StateHasChanged);
+        }
     }
-
-    private void SetFilter(string filter)
-    {
-        ActiveFilter = filter;
-        FilterTasks();
-    }
-      private async Task LoadInspectors()
+    private async Task LoadUserFromToken()
     {
         try
         {
-            Inspectors = await Http.GetFromJsonAsync<List<Inspector>>("https://localhost:7272/api/users/inspectors") ?? new();
+            var token = await JS.InvokeAsync<string>("localStorage.getItem", "authToken");
+            if (string.IsNullOrEmpty(token)) return;
+
+            var handler = new JwtSecurityTokenHandler();
+            var jwt = handler.ReadJwtToken(token);
+
+           
+            UserEmail = jwt.Claims.FirstOrDefault(c => c.Type == "Email")?.Value ?? "";
+         
+
+            Email = UserEmail;
+
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("JWT READ ERROR: " + ex.Message);
+        }
+    }
+ 
+   
+    private async Task LoadLeave()
+    {
+        try
+        {
+            LeaveData = await Http.GetFromJsonAsync<LeaveSummaryDto>(
+                $"https://localhost:7043/api/Leave/totals/{UserEmail}"
+            );
+            Console.WriteLine($"Annual: {LeaveData?.AnnualLeaveDays}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+            LeaveData = null;
+        }
+    }
+    private void SetFilter(string filter)
+    {
+        ActiveFilter = filter;
+       
+    }
+      private async Task LoadReportTo()
+    {
+        try
+        {
+            Inspectors = await Http.GetFromJsonAsync<List<Inspector>>("https://localhost:7272/api/users/reportsTo") ?? new();
             pageIndex = 0; 
         }
         catch
@@ -193,14 +230,7 @@
             Inspectors = new();
         }
     }
-    private void FilterTasks()
-    {
-        FilteredTasks = ActiveFilter == "all"
-            ? Tasks.ToList()
-            : Tasks.Where(t =>
-                t.Status.Equals(ActiveFilter, StringComparison.OrdinalIgnoreCase))
-                .ToList();
-    }
+    
 
     private string GetStatIcon(string statType) => statType.ToLower() switch
     {
@@ -229,5 +259,19 @@
         public int AssignedCount { get; set; }
         public string StatType { get; set; } = "";
         public int StatCount { get; set; }
+    }
+
+    public class Leave
+    {
+      
+        public string Email { get; set; } = "";
+        
+    }
+
+    public class LeaveSummaryDto
+    {
+        public int AnnualLeaveDays { get; set; }
+        public int SickLeaveDays { get; set; }
+        public int FamilyLeaveDays { get; set; }
     }
 }

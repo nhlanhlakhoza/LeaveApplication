@@ -170,7 +170,7 @@
 }
 
     .filter-btn.active {
-        background: #95b53d;
+       //background: #95b53d;
     }
 
     .filter-btn:hover {
