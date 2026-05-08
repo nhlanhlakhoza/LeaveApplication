@@ -1,14 +1,20 @@
 ﻿
 @inject IJSRuntime JS
+@inject UserStateService UserStateService
+@using LeaveApplication.Components.Services
 @using Radzen
-
+@using System.IdentityModel.Tokens.Jwt
+@inject UserStateService UserStateService
+@rendermode InteractiveServer
+@using System.IdentityModel.Tokens.Jwt
+@inject NavigationManager Navigation
 
 
 <div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
         <a class="navbar-brand" href="">
 
-            <img src="Images/logo2.png" alt="Logo" class="nav-logo" />
+            <img src="Images/logo3.png" alt="Logo" class="nav-logo" />
         </a>
     </div>
 </div>
@@ -36,18 +42,24 @@
                 <span class="bi-calendar-event fs-4 me-2 icon-all" aria-hidden="true"></span> Leave History
             </NavLink>
         </div>
-          <div class="nav-item px-3">
-            <NavLink class="nav-link" href="ApproveLeave">
-                <span class="bi-check2-square fs-4 me-2 icon-all" aria-hidden="true"></span> Approve Leave
-            </NavLink>
-        </div>
+        @if (UserRole == "Supervisor" || UserRole == "Manager" || UserRole == "GM"|| UserRole == "Director")
+        {
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="ApproveLeave">
+                    <span class="bi-check2-square fs-4 me-2 icon-all" aria-hidden="true"></span> Approve Leave
+                </NavLink>
+            </div>
+        }
+
+        @if (UserRole == "Supervisor" || UserRole == "Manager" || UserRole == "GM" || UserRole == "Director"|| UserRole == "Administrator")
+        {
             <div class="nav-item px-3">
                 <NavLink class="nav-link" href="users">
                     <span class="bi bi-people-fill fs-4 icon-all " style="position: relative; top: -13px;" aria-hidden="true"></span> Users
                 </NavLink>
             </div>
-        
-        
+        }
+
         
         <div class="nav-item px-3">
             <a class="nav-link"
@@ -72,19 +84,43 @@
     public string Initials { get; set; } = "";
     public string UserId { get; set; } = "";
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+      protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
             await LoadUserFromToken();
         }
     }
-    private async Task LoadUserFromToken()
+
+  private async Task LoadUserFromToken()
     {
-       
+        try
+        {
+            var token = await JS.InvokeAsync<string>("localStorage.getItem", "authToken");
+            if (string.IsNullOrEmpty(token)) return;
+
+            var handler = new JwtSecurityTokenHandler();
+            var jwt = handler.ReadJwtToken(token);
+
+            UserName = jwt.Claims.FirstOrDefault(c => c.Type == "FullName")?.Value ?? "";
+            UserEmail = jwt.Claims.FirstOrDefault(c => c.Type == "Email")?.Value ?? "";
+            lastName=jwt.Claims.FirstOrDefault(c => c.Type == "lastName")?.Value ?? "";
+            UserRole = jwt.Claims.FirstOrDefault(c => c.Type == "Role")?.Value ?? "";
+            UserId = jwt.Claims.FirstOrDefault(c => c.Type == "UserId")?.Value ?? "";
+
+         
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("JWT READ ERROR: " + ex.Message);
+        }
     }
+    
+
     private void Logout()
     {
         // Clear auth/session/token here
+        Navigation.NavigateTo("/");
     }
 }
