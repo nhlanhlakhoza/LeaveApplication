@@ -1,10 +1,12 @@
-﻿namespace LeaveApplicationBackend.Models
+﻿using System.Text.Json.Serialization;
+
+namespace LeaveApplicationBackend.Models
 {
     public class LeaveApplication
     {
         public int Id { get; set; }
         public int UserId { get; set; }
-
+   
         public User User { get; set; }
         
         public DateTime StartDate { get; set; }

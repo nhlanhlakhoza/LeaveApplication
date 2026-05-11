@@ -126,7 +126,27 @@ namespace LeaveApplicationBackend.Repositories
         public async Task<LeaveApplication?> GetByIdAsync(int id)
         {
             return await _context.LeaveApplications
-                .FirstOrDefaultAsync(l => l.Id == id);
+                .Where(l => l.Id == id)
+                .Select(l => new LeaveApplication
+                {
+                    Id = l.Id,
+                    Reason = l.Reason,
+                    LeaveType=l.LeaveType,
+                    NumberOfDays=l.NumberOfDays,    
+                    DocumentPath=l.DocumentPath,
+                    ApproverEmail=l.ApproverEmail,
+                    StartDate=l.StartDate,
+                    EndDate=l.EndDate,
+
+                    User = new User
+                    {
+                        Id = l.User.Id,
+                        FullName = l.User.FullName,
+                        LastName = l.User.LastName,
+                        Email = l.User.Email
+                    }
+                })
+                .FirstOrDefaultAsync();
         }
         public List<leaveTypeDTO> GetLeavesByEmail(string email)
         {

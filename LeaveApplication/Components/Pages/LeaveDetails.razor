@@ -29,7 +29,7 @@
 
                     <div class="leave-item">
                         <label>Employee Name</label>
-                        <span>@LeaveData.employeeName</span>
+                       <span>@LeaveData.User?.FullName @LeaveData.User?.LastName</span>
                     </div>
 
                     <div class="leave-item">
@@ -347,5 +347,15 @@
         public string employeeEmail { get; set; } = "";
         public string employeeName { get; set; } = "";
         public string documentPath { get; set; } = "";
+        public UserDto User { get; set; }
     }
+
+    public class UserDto
+{
+    public int Id { get; set; }
+    public string FullName { get; set; }
+    public string LastName { get; set; }
+    public string Email { get; set; }
+}
+
 }

@@ -54,45 +54,12 @@
     <!-- Content -->
     <div class="dashboard-content">
 
-        <!-- Recent Tasks -->
-        <div class="tasks-section">
-            <div class="section-header">
-                <h2><i class="fas fa-list-ul"></i> Recent Tickets</h2>
-                <div class="filters">
-                   <button class="filter-btn @(ActiveFilter == "all" ? "active" : "")" @onclick='() => SetFilter("all")'>All</button>
-<button class="filter-btn @(ActiveFilter == "missing" ? "active" : "")" @onclick='() => SetFilter("missing")'>Missing</button>
-<button class="filter-btn @(ActiveFilter == "pending" ? "active" : "")" @onclick='() => SetFilter("pending")'>Pending</button>
-<button class="filter-btn @(ActiveFilter == "in-progress" ? "active" : "")" @onclick='() => SetFilter("in-progress")'>In Progress</button>
-
-                </div>
-            </div>
-
-            <div class="tasks-container">
-                @foreach (var task in FilteredTasks)
-                {
-                    <div class="task-item">
-                        <div class="task-info">
-                            <div class="task-title">
-                                <span>
-<strong>@task.Title</strong> - <span class="task-description">@task.description</span>
-</span>
-                                <span class="priority @task.Priority.ToLower()">@task.Priority</span>
-                            </div>
-                            <div class="task-meta">
-                                <span><i class="far fa-calendar"></i> @task.DueDate.ToString("dd MMM yyyy")</span>
-                                <span><i class="fas fa-user"></i> @task.AssignedTo</span>
-                            </div>
-                        </div>
-                        <div class="status @task.Status.Replace(" ", "-").ToLower()">@task.Status</div>
-                    </div>
-                }
-            </div>
-        </div>
+       
 
         <!-- Inspectors -->
         <div class="inspectors-section">
             <div class="section-header">
-                <h2><i class="fas fa-users"></i> Inspector Team</h2>
+                <h2><i class="fas fa-users"></i> Team Leader</h2>
             </div>
 
             <div class="inspectors-container">
