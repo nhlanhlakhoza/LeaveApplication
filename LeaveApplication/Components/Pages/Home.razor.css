@@ -47,6 +47,7 @@
     transition: transform 0.3s, box-shadow 0.3s;
     min-width: 0; /* ensures cards shrink on small screens */
     overflow: hidden; /* prevents content overflow */
+    height:150%;
 }
 
     .summary-card:hover {

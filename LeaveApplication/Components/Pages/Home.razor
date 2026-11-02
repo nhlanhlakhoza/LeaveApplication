@@ -51,34 +51,7 @@
    
     </div>
 
-    <!-- Content -->
-    <div class="dashboard-content">
-
-       
-
-        <!-- Inspectors -->
-        <div class="inspectors-section">
-            <div class="section-header">
-                <h2><i class="fas fa-users"></i> Team Leader</h2>
-            </div>
-
-            <div class="inspectors-container">
-                @foreach (var inspector in PagedInspectors)
-                {
-                    <div class="inspector-card">
-                        <div class="inspector-avatar">@inspector.Avatar</div>
-                        <div class="inspector-details">
-                            <div class="inspector-name">@inspector.fullName</div>
-                            <div class="inspector-stats">
-                                <div><i class="fas fa-tasks"></i> @inspector.AssignedCount Assigned</div>
-                                <div>
-                                    <i class="@GetStatIcon(inspector.StatType)"></i>
-                                    @inspector.StatCount @inspector.StatType
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                }
+   
                
                
 
@@ -92,10 +65,8 @@
                          Style="margin-top:20px; display:flex; justify-content:center;" />
 
 
-        </div>
         
-    </div>
-</div>
+
 
 @code {
    
